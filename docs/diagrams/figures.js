@@ -16,7 +16,7 @@ INFO.g01 = {
 };
 (function () {
   const s = flat("g01");
-  s.r(30, 62, 200, 62, "cut"); s.t(44, 86, "your host", "lbl"); s.t(44, 104, "hub.submit() · wait()", "lbl-s");
+  s.r(30, 62, 200, 62, "cut"); s.t(44, 86, "your host", "lbl"); s.t(44, 104, "hub.submit() · wait()", "lbl");
   s.hit(30, 62, 200, 62, "queue");
   s.r(310, 50, 360, 186, "cap"); s.t(490, 74, "harness · one session", "mid", "middle");
   [["submission queue", "admit · settle · requestIds", 96], ["scheduler", "lanes · ownership · restarts", 132],
@@ -41,7 +41,7 @@ INFO.g01 = {
   s.t(P[2] + W / 2, 42, "bus — one line", "lbl-s", "middle"); s.t(P[3] + W / 2, 42, "mesh — everyone", "lbl-s", "middle");
   const node = (x, y, t) => s.box(x, y, 44, 24, t, "", "cap");
   s.box(P[0] + 105, 118, 56, 30, "hub", "", "side");
-  [[70, 168], [140, 168], [105, 100]].forEach(d => { lg(s, [[P[0] + 105, 118], [P[0] + d[0], d[1]]]); node(P[0] + d[0], d[1], "cell"); });
+  [[70, 168], [140, 168], [105, 86]].forEach(d => { lg(s, [[P[0] + 105, 118], [P[0] + d[0], d[1]]]); node(P[0] + d[0], d[1], "cell"); });
   const C = [P[1] + 105, 135], R = 46;
   for (let i = 0; i < 4; i++) {
     const a = i * Math.PI / 2 + Math.PI / 4, p = [C[0] + R * Math.cos(a), C[1] + R * Math.sin(a)];
@@ -60,10 +60,10 @@ INFO.g01 = {
 /* ─ g03 bipartite columns ──────────────────────────────────────────────── */
 (function () {
   const s = flat("g03");
-  ["12", "13", "14"].forEach((n, i) => { const y = 66 + i * 62; s.box(190, y, 150, 46, "tool " + n, "pi.tool", i === 1 ? "cap" : "side"); });
-  ["15", "21", "27"].forEach((n, i) => { const y = 66 + i * 62; s.box(700, y, 190, 46, "conversation " + n, "child transcript", i === 1 ? "cap" : "side"); });
+  ["12", "13", "14"].forEach((n, i) => { const y = 66 + i * 54; s.box(190, y, 150, 46, "tool " + n, "pi.tool", i === 1 ? "cap" : "side"); });
+  ["15", "21", "27"].forEach((n, i) => { const y = 66 + i * 54; s.box(700, y, 190, 46, "conversation " + n, "child transcript", i === 1 ? "cap" : "side"); });
   s.t(445, 48, "owns", "lbl", "middle");
-  ["12", "13", "14"].forEach((n, i) => { const y = 66 + i * 62; lg(s, [[266, y], [603, y]], "", i === 1 ? "ln" : "wire"); });
+  ["12", "13", "14"].forEach((n, i) => { const y = 66 + i * 54; lg(s, [[266, y], [603, y]], "", i === 1 ? "ln" : "wire"); });
   s.t(24, 218, "one edge type, drawn twice — children hold their own transcripts (lab 02 · src/types.ts:306-315)", "lbl-s");
 })();
 
@@ -91,29 +91,37 @@ INFO.g01 = {
 (function () {
   const s = flat("g05");
   const X = t => 90 + (t - 30) * 61; // entry ids 30..41 mapped to 90..761
-  [30, 34, 36, 38, 41].forEach(t => { s.p(`M${X(t)} 140V158`, "ln2"); s.t(X(t), 174, "e" + t, "lbl-s", "middle"); });
-  s.p(`M90 140H765`, "ln2");
-  const arc = (a, b, h, lbl, cls) => { const x1 = X(a), x2 = X(b); s.p(`M${x1} 136Q${(x1 + x2) / 2} ${136 - h} ${x2} 136`, cls || "ln"); s.t((x1 + x2) / 2, 136 - h - 8, lbl, "lbl", "middle"); };
-  arc(30, 36, 52, "A · answered in e36");
-  arc(34, 41, 84, "B · answered in e41");
-  arc(36, 38, 28, "C · write, settled at once", "wire");
-  s.t(24, 210, "every arc spans one submission's committed life — placed at its entry, closed at its answer (src/types.ts:383-414)", "lbl-s");
+  const arc = (a, b, h, cls) => { const x1 = X(a), x2 = X(b); s.p(`M${x1} 136Q${(x1 + x2) / 2} ${136 - h} ${x2} 136`, cls || "ln"); };
+  const S = [
+    { cap: "<b>The ruler.</b> Entry ids on one line; every arc is placed by its start and end alone." },
+    { cap: "<b>A.</b> Submitted at e30, answered at e36 — six entries of committed life." },
+    { cap: "<b>B.</b> Submitted at e34, answered at e41 — the widest arc, the long round." },
+    { cap: "<b>C.</b> A bare write: placed and settled in one commit, so it draws as a bump, not a span." },
+  ];
+  steps("g05", S, i => {
+    s.clear();
+    s.p(`M90 140H765`, "ln2");
+    [30, 34, 36, 38, 41].forEach(t => { s.p(`M${X(t)} 140V158`, "ln2"); s.t(X(t), 174, "e" + t, "lbl-s", "middle"); });
+    s.t(24, 210, "every arc spans one submission's committed life — placed at its entry, closed at its answer (src/types.ts:383-414)", "lbl-s");
+    if (i >= 1) { arc(30, 36, 52); s.t(267, 76, "A · answered in e36", "lbl", "middle"); }
+    if (i >= 2) { arc(34, 41, 84); s.t(522, 44, "B · answered in e41", "lbl", "middle"); }
+    if (i >= 3) { arc(36, 38, 28, "wire"); s.t(575, 130, "C · settled at once", "lbl-s", "start"); }
+  });
 })();
 
 /* ─ g06 fan tree ───────────────────────────────────────────────────────── */
 (function () {
   const s = flat("g06");
-  s.box(130, 64, 190, 44, "root conversation", "lab 02", "side");
-  s.box(480, 150, 170, 44, "generation 9", "the round", "cap");
-  const T = [[210, 78], [480, 52], [750, 78]], K = [[140, 246], [480, 250], [812, 246]];
-  T.forEach((t, i) => {
-    s.box(t[0], t[1] + 40, 130, 40, "tool " + ["12", "13", "14"][i], "pi.tool", i === 1 ? "cap" : "side");
-    s.p(`M480 128Q${t[0]} ${t[1] + 20} ${t[0]} ${t[1] + 62}`, "guide");
-    s.box(K[i][0], K[i][1], 200, 44, "conversation " + ["15", "21", "27"][i], "child transcript", "side");
-    lg(s, [[t[0], t[1] + 62], [K[i][0], K[i][1] - 24]], "", i === 1 ? "ln" : "wire");
+  s.box(480, 208, 190, 44, "generation 9", "the round", "cap");
+  s.box(170, 208, 190, 44, "root conversation", "lab 02", "side");
+  lg(s, [[267, 208], [383, 208]], "runs on", "ln", 325, 196, "middle");
+  [[190, 0], [480, 1], [770, 2]].forEach(t => {
+    s.box(t[0], 96, 120, 40, "tool " + ["12", "13", "14"][t[1]], "pi.tool", t[1] === 1 ? "cap" : "side");
+    s.box(t[0], 36, 160, 32, "conversation " + ["15", "21", "27"][t[1]], "", "side");
+    s.p(`M${t[0]} 54V76`, "ln2");
+    s.arrow([[t[0] + (t[1] === 1 ? 0 : t[1] === 0 ? -38 : 38), 186], [t[0], 118]], "wire", 5);
   });
-  lg(s, [[228, 66], [400, 132]], "runs on", "ln", 268, 92, "middle");
-  s.t(24, 274, "width encodes nothing — peerness over size (generation.ts:697-710)", "lbl-s");
+  s.t(24, 262, "width encodes nothing — peerness over size (generation.ts:697-710)", "lbl-s");
 })();
 
 /* ─ g07 circuit ────────────────────────────────────────────────────────── */
@@ -153,7 +161,7 @@ INFO.g01 = {
       const box = [p[0] + side * 78, p[1]];
       s.p(`M${p[0]} ${p[1]}L${box[0] - side * 75} ${box[1]}`, "wire");
       s.r(box[0] - 75, box[1] - 19, 150, 38, "cut");
-      s.t(box[0], box[1] - 2, gate[i], "lbl", "middle"); s.t(box[0], box[1] + 12, "via ExecutionEnv", "lbl-s", "middle");
+      s.t(box[0], box[1] - 2, gate[i], "lbl", "middle"); s.t(box[0], box[1] + 12, "via ExecutionEnv", "lbl", "middle");
     });
     const k = (Math.sin(T * 1.4) + 1) / 2; s.token([[C[0] + 62, C[1]], [C[0] + R, C[1]], [C[0], C[1] - R]], k / 2, "solid", 6);
   }

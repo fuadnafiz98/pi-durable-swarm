@@ -79,7 +79,7 @@ button:focus-visible,input:focus-visible,a:focus-visible{outline:1px dashed var(
 .lbl-g{font:10px var(--mono);fill:var(--ok)}
 .lbl-w{font:10px var(--mono);fill:var(--warn)}
 .mid{font-family:var(--mono);font-size:14px;fill:var(--ink)}
-.halo{paint-order:stroke;stroke:var(--panel);stroke-width:4px;stroke-linejoin:round}
+.halo{paint-order:stroke;stroke:var(--panel);stroke-width:5px;stroke-linejoin:round}
 .dl-dot{fill:var(--ink)} .dl-bg{fill:var(--side)}
 .dd-dot{fill:var(--ink)} .dd-bg{fill:var(--side)}
 .dim{opacity:.2}
