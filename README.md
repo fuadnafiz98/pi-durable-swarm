@@ -1,5 +1,7 @@
 # pi-durable-swarm
 
+> **📖 Live visual explainer: https://fuadnafiz98.github.io/pi-durable-swarm/**
+
 An investigation of `pi durable` — durable AI agent sessions from
 [`pi-mono`](https://github.com/badlogic/pi-mono) — plus a swarm where
 **OpenCode v2 and Claude Code itself** join as workers, and a self-hosted
@@ -30,9 +32,10 @@ models.dev), builds it, and wires `@earendil-works/*` into
 
 1. **[swarm-lab/README.md](swarm-lab/README.md)** — the experiments,
    `npm run 01 … 07` one by one, with what each commits and what to watch for.
-2. **[docs/index.html](docs/index.html)** — the illustrated walkthrough:
-   how a session becomes durable state, the task graphs, the state machine,
-   the crash story, and the three swarm patterns.
+2. **[The visual explainer, hosted](https://fuadnafiz98.github.io/pi-durable-swarm/)**
+   (also in-repo: [docs/index.html](docs/index.html)) — the illustrated
+   walkthrough: how a session becomes durable state, the task graphs, the
+   state machine, the crash story, and the three swarm patterns.
 3. **[swarm-lab/07-celld/](swarm-lab/07-celld/README.md)** — the same harness
    inside a Durable Object cell, to run under
    [celld](https://github.com/denoland/celld) on your own machines.
