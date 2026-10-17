@@ -1,18 +1,31 @@
   <div class="prose">
     <!-- toc -->
     <p><code>@earendil-works/pi-durable</code> runs AI agents as <em>committed state</em>: every input, every streamed partial, every tool call lands in a storage transaction before anything reads it. A crash costs you a process, never the conversation. This page walks one session end to end — from <code>hub.submit()</code> to a durable answer — then adds choreography (tasks, swarms, restarts) and the places the same code can run: a laptop, a Durable Object cell, a fleet.</p>
-    <p>Everything drawn here was read in the pi-mono package sources (the checkout sits <em>beside</em> this lab; receipts point into <code>pi/packages/…</code>) and run in a lab of experiments (<a href="#s7">the swarm patterns</a>, <a href="#s5">the real SIGKILL</a>). Because the figures follow the source, they carry file-and-line receipts; hover anything.</p>
+    <p>Everything drawn here was read in the pi-mono package sources (the checkout sits <em>beside</em> this lab; receipts point into <code>pi/packages/…</code>) and run in a lab of experiments (<a href="#patterns">the swarm patterns</a>, <a href="#crash">the real SIGKILL</a>, <a href="#blueprint">the factory blueprint</a>). Because the figures follow the source, they carry file-and-line receipts; hover anything.</p>
+    <p>TL;DR for builders: <b>one session = one storage file</b>; <b>one commit = the unit of durability</b>; <b>the scheduler is a paused pump</b> that waits and aborts turn on; <b>ownership</b> decides what aborts and waits reach — those four ideas explain every figure below.</p>
   </div>
   <figure data-fig="map" data-h="445" data-nav="none" data-title="the parts of a durable session" aria-label="A host calls a harness that holds a submission queue, a scheduler, conversations and event streams; commits go to storage; model calls go to pi-ai; foreign agents are reached through exec forwarders.">Hover a box for its role and its source file.</figure>
 
   <div class="prose">
-    <h2 id="s2"><span class="n">02 · WORKFLOW</span>What happens to one input?</h2>
+    <h2 id="round"><span class="n">02 · WORKFLOW</span>What happens to one input?</h2>
     <p>Nothing about a round is memory-only. The input arrives, the scheduler groups it into a run, the model streams through a durable task, and the answer is appended like everything else. Step through the round.</p>
   </div>
   <figure data-fig="flow" data-h="160" data-nav="steps" data-title="one round, submit to settle" aria-label="Seven states of one conversation round: submit appends the input, admit starts the run, prepare saves the checkpoint, request streams, tools run as child tasks, the answer appends, the submission settles."></figure>
 
   <div class="prose">
-    <h2 id="s3"><span class="n">03 · STATE</span>Where does work stop and start?</h2>
+    <h2 id="onecommit"><span class="n">03 · STORAGE</span>What makes a commit the unit of durability?</h2>
+    <p>Not a save — a transaction. You read committed state plus your drafts, decide, and the <em>returned value</em> becomes the thing that survives. Step through what physically happens on every <code>commit</code>.</p>
+  </div>
+  <figure data-fig="commit" data-h="330" data-nav="steps" data-title="one commit, atom by atom" aria-label="Five steps of one commit: one callback holds every change, reads see committed state plus drafts, the returned value is the durable decision, one SQLite transaction writes the tables, and the settled rows outlive any process."></figure>
+
+  <div class="prose">
+    <h2 id="waiting"><span class="n">04 · SUBMISSIONS</span>What exactly am I waiting on?</h2>
+    <p>A submission is the durable handshake between you and a session: <code>queued → placed → done</code> (or <code>unanswered</code>). It lives in a table, so the wait itself survives restarts. Pick the kind.</p>
+  </div>
+  <figure data-fig="subm" data-h="300" data-nav="choose" data-act="kind" data-title="the two submission lifetimes" aria-label="Submission states for inputs: queued, placed with an entry, done with an answer entry, or unanswered with a reason; and for passive writes: queued to done without placement."></figure>
+
+  <div class="prose">
+    <h2 id="tasklife"><span class="n">05 · STATE</span>Where does work stop and start?</h2>
     <p>Every unit of work — a generation, a tool call, a compaction, one of your tasks — is the same durable record with the same five states. The invocation is the only part a restart loses. Pick a state to see what holds it.</p>
   </div>
   <figure data-fig="state" data-h="355" data-nav="choose" data-act="life" data-title="the life of a task" aria-label="Task states: pending to running to waiting and completing to terminal, with a restart demotion path and an abort mark path, and the five outcomes."></figure>
@@ -29,13 +42,19 @@
   </div>
 
   <div class="prose">
-    <h2 id="s4"><span class="n">04 · STRUCTURE</span>What holds what up?</h2>
+    <h2 id="owns"><span class="n">06 · GRAPHS</span>How do tasks and conversations link?</h2>
+    <p>Tasks don't own conversations in the diagram sense — it's the reverse, and that single edge lets aborts walk and idle waits compute. Lab 02's real graph, link by link.</p>
+  </div>
+  <figure data-fig="graphs" data-h="430" data-nav="steps" data-title="lab 02's real graph, edge by edge" aria-label="The lab 02 task graph: a root conversation runs a generation task, which spawns three tool tasks, each owning a child conversation; an abort walks one ownership edge; idle waits need each ordinary edge settled."></figure>
+
+  <div class="prose">
+    <h2 id="stack"><span class="n">07 · STRUCTURE</span>What holds what up?</h2>
     <p>Four layers rest on one swappable storage contract. Your extension code sits at the top; the built-ins are extensions too. Below, the SQLite layer keeps nine public tables — the very names a Durable Object cell keeps.</p>
   </div>
   <figure data-fig="layers" data-h="460" data-nav="choose" data-act="look" data-title="the stack and its schema" aria-label="An isometric stack: extensions over conversations over scheduler over the session line over durable storage; and the nine storage tables.">Two views of the same structure.</figure>
 
   <div class="prose">
-    <h2 id="s5"><span class="n">05 · TIME</span>What does a crash actually cost?</h2>
+    <h2 id="crash"><span class="n">08 · TIME</span>What does a crash actually cost?</h2>
     <p>Two rounds in the life of one conversation. In the second, the process dies mid-stream under SIGKILL and another process opens the same storage. Watch what the timeline keeps: the committed partial, the demotion, the retry.</p>
   </div>
   <figure data-fig="clock" data-h="300" data-nav="play" data-act="scenario" data-title="healthy round vs SIGKILL mid-stream" aria-label="Two timelines over three lanes: a healthy round runs and settles; the killed round reopens, demotes the stale run to pending, resumes and retries the request until the answer commits.">Press play, or step event by event.</figure>
@@ -45,13 +64,19 @@
   </div>
 
   <div class="prose">
-    <h2 id="s6"><span class="n">06 · CALL STACK</span>Who runs one submit?</h2>
+    <h2 id="kick"><span class="n">09 · PUMP</span>What turns work on?</h2>
+    <p>Commits alone never start work. The scheduler is a pump that ships <em>paused</em>, and only four kinds of calls flip the switch — including one explicit kick.</p>
+  </div>
+  <figure data-fig="pump" data-h="330" data-nav="steps" data-title="the paused pump, call by call" aria-label="The scheduler ships paused; a submission, a wait, an abort, or an explicit harness.resume() each flip it to running and drain; a commit-seeded background task waits in storage until the kick."></figure>
+
+  <div class="prose">
+    <h2 id="frames"><span class="n">10 · CALL STACK</span>Who runs one submit?</h2>
     <p>The same round as a stack of frames. Note what happens as it unwinds: frames vanish, state stays — every step the stack took was already a commit.</p>
   </div>
   <figure data-fig="calls" data-h="330" data-nav="steps" data-title="one submit, frame by frame" aria-label="A call stack from the host's submit through admit, drain, prepare, stream, progress commit and classify, until the submission settles."></figure>
 
   <div class="prose">
-    <h2 id="s7"><span class="n">07 · SWARM</span>How do many agents hold still?</h2>
+    <h2 id="patterns"><span class="n">11 · SWARM</span>How do many agents hold still?</h2>
     <p>Ownership is pi-durable's choreography: a task that owns a thing decides what its aborts and idle waits reach. Three patterns cover most swarms — and one of them has room for a foreign agent joined through a real CLI.</p>
   </div>
   <figure data-fig="swarm" data-h="430" data-nav="choose" data-act="pattern" data-title="three durable topologies" aria-label="Three swarm shapes: a foreground tool call owning child conversations; persistent background workers behind anchors with reporters; host-driven workers sharing one session document with a foreign OpenCode CLI.">Pick a pattern; hover the boxes for the mechanism.</figure>
@@ -66,7 +91,27 @@
   </div>
 
   <div class="prose">
-    <h2 id="s8"><span class="n">08 · DEPLOY</span>Where do sessions live in production?</h2>
+    <h2 id="blueprint"><span class="n">12 · FACTORY</span>A software factory on the same primitives?</h2>
+    <p>Intake, router, workshops, shelves, machines, shipping — every factory role is a durable primitive the lab already ran. Three views: the floor, the knobs, and one build job walking the line.</p>
+  </div>
+  <figure data-fig="factory" data-h="430" data-nav="choose" data-act="zone" data-title="the factory floor" aria-label="Four zones of the factory: intake submissions to a router conversation; workshops as anchor tasks owning worker conversations; shelves as scoped documents; machines as tools over ExecutionEnv; shipping as settled submissions.">Pick a zone; hover for the primitive behind it.</figure>
+  <figure data-fig="knobs" data-h="360" data-nav="none" data-title="the six knobs you will actually set" aria-label="Six primitives to choose when building on pi-durable: document scope, ownership kind, background, abandon-on-restart, tool replay, and which wait to use.">Hover each knob for its semantics and receipt.</figure>
+  <figure data-fig="pipeline" data-h="370" data-nav="steps" data-title="one build job, checkpoint by checkpoint" aria-label="A build job walks the factory: spec submitted, router spawns a builder, builder commits a plan and waits on a tester, the tester fails and a fixer is spawned, a reviewer runs in the background, and the final answer settles the original submission."></figure>
+  <div class="tw">
+    <table class="t">
+      <caption>Factory role → primitive → receipt</caption>
+      <tr><th>factory role</th><th>pi-durable primitive</th><th>receipt</th></tr>
+      <tr><td>intake</td><td><code>submit({requestId})</code> — dedupe, queued → placed</td><td><code>src/types.ts:371-376</code></td></tr>
+      <tr><td>router</td><td>the root conversation's agent settings</td><td>lab 02 orchestration</td></tr>
+      <tr><td>workshops</td><td>anchor tasks owning worker conversations</td><td><code>src/types.ts:306-315</code> · lab 03</td></tr>
+      <tr><td>shelves</td><td>docs scoped session / conversation / task</td><td><code>src/documents.ts:39-51</code> · lab 04</td></tr>
+      <tr><td>machines</td><td>tools + <code>replay</code> + an <code>ExecutionEnv</code></td><td><code>src/harness/tool.ts</code> · lab 06/07</td></tr>
+      <tr><td>shipping</td><td><code>settleSubmission</code> → done with the answer entry</td><td><code>src/types.ts:843</code> · <code>submission.wait()</code></td></tr>
+    </table>
+  </div>
+
+  <div class="prose">
+    <h2 id="deploytarget"><span class="n">13 · DEPLOY</span>Where do sessions live in production?</h2>
     <p>Same application code, three surfaces. The storage adapter is the only thing that changes — that is the whole portability story, and why the crash semantics survive a move into a Durable Object cell.</p>
   </div>
   <figure data-fig="deploy" data-h="390" data-nav="choose" data-act="target" data-title="three machines for the same harness" aria-label="Three deployment targets: laptop Node with a SQLite file, a Durable Object cell over its storage, and a celld fleet of cells replication into a bucket.">Pick a target; hover for the adapter.</figure>

@@ -372,3 +372,390 @@ INFO.deploy = {
     { k: "fleet", label: "a self-hosted fleet", cap: "<b>Fleet.</b> celld runs the same worker as a fleet over a bucket; <code>celld dev</code> exercises it locally without a bucket." }
   ], k => (k === "object" ? object() : k === "fleet" ? fleet() : laptop()), "target");
 })();
+
+/* ─── 03 · STORAGE: one commit, atom by atom ───────────────────────────── */
+INFO.commit = {
+  callback: ["One commit callback can change documents, create tasks and append entries together — they share one fate.", "src/harness/harness.ts:230-232 (commitWith) · src/types.ts:146-150"],
+  overlay: ["Inside the callback, reads replay committed data plus your drafts. Other processes bind to the last committed incarnation and never see a draft.", "src/session/transaction.ts:683-690 (drafts revoked at prepare) · src/types.ts:887"],
+  judge: ["For a task phase the rule is absolute: the checkpoint or outcome returned through <code>runtime.commit()</code> is the decision; returning without durable progress faults the task.", "src/types.ts:146-150 · src/harness/scheduler.ts:1363"],
+  ledger: ["All writes ride one SQLite transaction: metadata → global-id checks → document checks → table writes → document actions — then the seq advances.", "src/storage/sqlite/storage.ts:191-201"],
+  settled: ["Committed rows are closed to change: a dead process cannot unwrite, and the next process opening the file reads exactly these rows.", "src/types.ts:505-536 · lab 05"],
+  tables: ["The nine public tables: durable_schema, durable_metadata, record_ids, conversations, entries, tasks, submissions, documents, document_revisions.", "src/storage/sqlite/schema.ts:5-16"],
+};
+(function () {
+  const s = flat("commit");
+  const CX = 640, CY = 118;
+  function ledger() {
+    s.cyl(CX, CY, 210, 140, "side", "cap");
+    s.t(CX, CY + 64, "your SQLite file", "lbl", "middle");
+    s.t(CX, CY + 86, "9 public tables", "lbl-s", "middle");
+    s.hit(CX - 105, CY, 210, 150, "tables");
+  }
+  steps("commit", [
+    { cap: "<b>one callback.</b> Docs, tasks, entries: whatever one <code>commit(fn)</code> touches lands — or rolls back — together." },
+    { cap: "<b>the overlay.</b> Your reads see committed rows re-played with your drafts; nobody else ever sees a draft." },
+    { cap: "<b>the judge.</b> For task phases the returned state <em>is</em> the decision: a bare return faults <code>faulted</code>." },
+    { cap: "<b>the ledger.</b> One SQLite transaction applies everything; the ledger jumps settled → settled." },
+    { cap: "<b>settled.</b> Rows are forever; the retry re-runs from state, and committed state never reverts." },
+  ], function (i) {
+    s.clear();
+    ledger();
+    if (i === 0) {
+      s.box(140, 124, 200, 56, "host commit(fn)", "docs · tasks · entries together", "cap", "callback");
+      s.box(336, 104, 130, 38, "doc draft", "", "side", "callback");
+      s.box(336, 148, 130, 38, "task + entry", "", "side", "callback");
+      s.arrow([[244, 124], [266, 108]], "ln", 4);
+      s.arrow([[244, 130], [266, 146]], "ln", 4);
+      s.arrow([[404, 126], [532, 148]], "ln", 5);
+      s.t(24, 200, "one callback, one fate — everything lands or nothing does", "lbl-s");
+    } else if (i === 1) {
+      s.t(24, 64, "the draft overlay", "lbl-s");
+      s.box(250, 130, 300, 64, "you read", "committed rows + your drafts", "cap", "overlay");
+      s.box(250, 262, 300, 64, "every other process", "committed rows only — never drafts", "side", "overlay");
+      s.arrow([[402, 130], [532, 152]], "ln", 5);
+      s.arrow([[402, 262], [532, 218]], "wire", 4);
+      s.xmark(492, 244);
+      s.t(24, 314, "drafts exist only under the writer — outside, the last commit", "lbl-s");
+    } else if (i === 2) {
+      s.box(150, 120, 190, 52, "task phase", "the handler runs", "cap", "judge");
+      s.box(500, 144, 300, 56, "runtime.commit(fn) → returned", "the state that survives", "ok-f", "judge");
+      s.arrow([[248, 122], [346, 138]], "ln", 5);
+      s.box(500, 242, 300, 44, "bare return", "no committed checkpoint", "cut", "judge");
+      s.arrow([[585, 174], [585, 218]], "guide", 4);
+      s.xmark(750, 242); s.t(768, 248, "faulted", "lbl-b");
+      s.t(24, 314, "returning without durable progress is a contract break, reported loudly", "lbl-s");
+    } else if (i === 3) {
+      var rows = ["metadata check", "checkGlobalIds", "checkDocumentActions", "applyTableWrite …", "applyDocumentActions"];
+      rows.forEach(function (t, r) {
+        s.r(760, 52 + r * 36, 190, 30, r < 4 ? "ok-f" : "cap");
+        s.t(852, 68 + r * 36, t, r < 4 ? "lbl" : "lbl-s", "middle");
+        if (r < 4) s.t(938, 68 + r * 36, "✓", "lbl");
+      });
+      s.box(170, 208, 210, 56, "one SQLite transaction", "then the seq advances", "cap", "ledger");
+      s.arrow([[278, 208], [754, 190]], "ln", 5);
+      s.t(24, 314, "intermediate states never exist to observers — settled jumps to settled", "lbl-s");
+    } else {
+      s.box(150, 120, 190, 52, "process A", "died mid-flight", "cut", "settled");
+      s.xmark(240, 94);
+      s.box(150, 252, 190, 52, "process B", "opens the same file", "cap", "settled");
+      s.arrow([[248, 122], [568, 166]], "guide", 4);
+      s.arrow([[248, 252], [568, 142]], "ln", 4);
+      s.t(24, 314, "the retry re-runs from state; the committed rows never revert", "lbl-s");
+    }
+  });
+})();
+
+/* ─── 04 · SUBMISSIONS: the two lifetimes ──────────────────────────────── */
+INFO.subm = {
+  queued: ["Admitted but not yet in the transcript: it waits behind the inbox (busy gates, queue order).", "src/types.ts:383-390 · src/harness/inbox.ts:99-111"],
+  placed: ["A run owns it: the entry is in the transcript and the run owes the answer.", "src/types.ts:391-398"],
+  done: ["The answer entry (or appended write) is committed; waiters resolve. It never changes again.", "src/types.ts:399-406 · src/types.ts:843 (settleSubmission)"],
+  unanswered: ["Terminal without an answer, with a durable reason. A placed input keeps its entry.", "src/types.ts:407-414"],
+  write: ["Passive writes have no model round: the entry lands and it settles done — or unanswered.", "src/types.ts:416-443"],
+  abort: ["<code>abortSubmission</code>: 'aborted' (in flight), 'already_placed' (a run owns it), 'settled', 'not_found'.", "src/harness/submissions.ts:30 · src/harness/harness.ts:290-293"],
+  requestid: ["Host-supplied dedupe: same requestId + type idempotently settles — retry-safe delivery.", "src/types.ts:374-375"],
+};
+(function () {
+  const s = flat("subm");
+  function draw(k) {
+    s.clear();
+    const input = k === "input";
+    s.box(170, 108, 130, 46, "queued", "", "cap", "queued");
+    if (input) {
+      s.box(450, 108, 130, 46, "placed", "entryId", "cap", "placed");
+      s.arrow([[238, 108], [382, 108]], "ln", 5);
+      s.t(310, 90, "inbox admits it", "lbl-s", "middle");
+      s.box(730, 108, 160, 46, "done ✓", "answer entryId", "ok-f", "done");
+      s.arrow([[518, 108], [646, 108]], "ln", 5);
+      s.t(582, 90, "answered", "lbl-s", "middle");
+      s.box(730, 232, 160, 46, "unanswered ✗", "reason + detail", "side", "unanswered");
+      s.arrow([[518, 128], [628, 214]], "guide", 4);
+      s.t(540, 176, "never answered", "lbl-s");
+    } else {
+      s.box(730, 108, 160, 46, "done ✓", "entryId", "ok-f", "write");
+      s.arrow([[238, 108], [646, 108]], "ln", 5);
+      s.t(442, 90, "appendEntry — no model round", "lbl-s", "middle");
+      s.box(730, 232, 160, 46, "unanswered ✗", "reason", "side", "unanswered");
+      s.arrow([[238, 128], [628, 214]], "guide", 4);
+      s.t(420, 170, "kept out — or the entry refuses", "lbl-s");
+    }
+    s.box(190, 272, 240, 40, "submission.wait(context)", "resolves on done · unanswered", "side", "abort");
+    s.t(322, 274, "you hold this Promise; the state is on disk", "lbl-s");
+    s.t(24, 24, "one submission row per input (or write)", "lbl-s");
+    s.hit(24, 14, 260, 18, "requestid");
+  }
+  choose("subm", [
+    { k: "input", label: "an input", cap: "<b>Input.</b> queued → placed (its <code>pi.user</code> entry) → done (its answer) or unanswered. <code>wait()</code> resolves on the terminal states; a restart replays the record, not the round." },
+    { k: "write", label: "a passive write", cap: "<b>Write.</b> Same record shape, no model: the entry lands and it settles <code>done</code> — or stays <code>unanswered</code> with a reason. Writes never park a run." },
+  ], draw, "kind");
+})();
+
+/* ─── 06 · GRAPHS: lab 02's real graph, edge by edge ───────────────────── */
+INFO.graphs = {
+  genroot: ["The round runs as a generation task — a <code>pi.generation</code> owned by the root conversation.", "src/harness/generation.ts:697-710 · INFO.flow:admit"],
+  tooltask: ["Each tool call of an answer is its own <code>pi.tool</code> task, parallel by default; the run parks <code>waiting</code> on them.", "src/harness/agent.ts:69 · src/types.ts:519-525"],
+  owneredge: ["The ownership edge: <code>ConversationRecord.owner = { conversationId, taskId }</code>. The task owns the child conversation — aborts walk it, waits sum it.", "src/types.ts:306-315"],
+  idlewait: ["Idle waits over a conversation sum its subtree: every ordinary (non-background) owned task must be terminal.", "src/harness/scheduler.ts · src/types.ts:287-293"],
+  abortwalk: ["An abort mark walks the ordinary ownership scope top-down; the invocation dies at its next step, settling <code>aborted</code>.", "src/harness/scheduler.ts:396-414 · lab 03"],
+};
+(function () {
+  const s = flat("graphs");
+  const T = { gen9: [150, 130, "generation 9"], t12: [430, 130, "tool 12"], t13: [650, 130, "tool 13"], t14: [855, 130, "tool 14"] };
+  const C = { root: [150, 322, "root conversation"], c15: [430, 322, "conversation 15"], c21: [650, 322, "conversation 21"], c27: [855, 322, "conversation 27"] };
+  const OWN = [["t12", "c15"], ["t13", "c21"], ["t14", "c27"]];
+  function draw(i) {
+    s.clear();
+    s.t(24, 24, "lab 02's committed graph — ids exactly as they landed in .data", "lbl-s");
+    for (const key in C) {
+      const c = C[key];
+      if (i < (key === "root" ? 0 : 2)) continue;
+      s.cyl(c[0], c[1], key === "root" ? 200 : 160, 80, key === "root" ? "cap" : "side", "cap");
+      s.t(c[0], c[1] + 44, c[2], "lbl", "middle");
+    }
+    s.arrow([[150, 152], [150, 318]], i === 0 ? "ln" : "wire", 4);
+    s.t(166, 236, "runs on ↓", "lbl-s");
+    s.box(T.gen9[0], T.gen9[1], 170, 44, "generation 9", "the round", i === 0 ? "ok-f cur" : "can fm", "genroot");
+    s.hit(150 - 85, T.gen9[1] - 22, 170, 44, "genroot");
+    if (i >= 1) {
+      ["t12", "t13", "t14"].forEach(function (tk) {
+        const t = T[tk];
+        s.box(t[0], t[1], 150, 44, t[2], "pi.tool", (i >= 3 && tk === "t13") ? "warn-f cur" : i === 1 ? "ok-f cur" : "cap", "tooltask");
+        s.hit(t[0] - 75, t[1] - 22, 150, 44, "tooltask");
+      });
+      s.arrow([[240, 126], [352, 122]], i === 1 ? "ln" : "wire", 4);
+      s.t(300, 104, "× 3 tool tasks", "lbl-s", "middle");
+      s.hit(340, 262, 220, 140, "owneredge");
+      s.hit(590, 100, 130, 180, "abortwalk");
+      s.hit(780, 262, 200, 140, "idlewait");
+    }
+    if (i >= 2) {
+      OWN.forEach(function (o) {
+        const t = T[o[0]];
+        const hot = o[0] === "t13" && i === 3;
+        s.arrow([[t[0], 152], [t[0], 318]], hot ? "bad-l" : i === 3 ? "wire" : "ln", 5);
+        s.t(t[0] + 42, 236, "owns ↓", hot ? "lbl-b" : "lbl-s");
+      });
+    }
+    if (i === 3) {
+      s.xmark(650, 244);
+      s.t(548, 258, "aborted ✗", "lbl-b");
+      s.t(24, 414, "idle waits sum the ordinary owned edges; background ones sit outside the sum", "lbl-s");
+      s.hit(24, 402, 920, 22, "idlewait");
+    }
+  }
+  steps("graphs", [
+    { cap: "<b>root runs.</b> One root conversation; its round is generation task 9 — the runs-on edge." },
+    { cap: "<b>tools spawn.</b> Three tool calls become three durable <code>pi.tool</code> tasks, parallel by default." },
+    { cap: "<b>children open.</b> Each tool task owns a child conversation — the edge that powers all choreography." },
+    { cap: "<b>abort + waits.</b> An abort walks one ownership edge down; idle waits need the ordinary edges standing." },
+  ], draw);
+})();
+
+/* ─── 09 · PUMP: what turns work on ────────────────────────────────────── */
+INFO.pump = {
+  paused: ["The scheduler ships <code>#enabled = false</code>: no drain, no admit, no work at all.", "src/harness/scheduler.ts:267 · :1096-1099 · :1266 ('paused')"],
+  submit: ["<code>conversation.submit()</code> resumes the pump before returning.", "src/harness/submissions.ts:65 · src/harness/harness.ts:205"],
+  waits: ["Every wait — <code>waitForTask</code>, <code>waitForIdle</code>, <code>submission.wait</code> — resumes first, settles second.", "src/harness/harness.ts:244-290"],
+  abort: ["<code>conversation.abort()</code> resumes too: cancel intents need a live pump to walk.", "src/harness/harness.ts:150-152 · scheduler.ts:396-414"],
+  trap: ["A commit can seed tasks (<code>createTask</code>)… but a commit alone never flips the pump. Seeded work sits as rows.", "src/harness/scheduler.ts:1096-1099"],
+  kick: ["<code>harness.resume()</code> sets enabled = true: the explicit kick, exactly what lab 03's host needed.", "src/harness/scheduler.ts:318-321 · lab 03"],
+  drain: ["Once enabled, <code>#drain()</code> sweeps pending work; callers never see a half-drained state.", "src/harness/scheduler.ts:1102-1112"],
+};
+(function () {
+  const s = flat("pump");
+  const labels = ["plain commit", "submit()", "wait()", "abort()", "createTask in commit", "harness.resume()"];
+  const chips = ["paused", "submit", "waits", "abort", "trap", "kick"];
+  function draw(i) {
+    s.clear();
+    const paused = i === 0 || i === 4;
+    s.box(150, 148, 200, 56, "host", "your code", "cap");
+    s.box(500, 150, 280, 110, "scheduler", "gate: draining? enabled?", paused ? "cut" : "can fm", chips[i]);
+    s.t(500, 228, paused ? "scheduling: paused" : i === 5 ? "scheduling: RUNNING (kicked)" : "scheduling: running", paused ? "lbl-s" : "lbl", "middle");
+    s.cyl(850, 96, 170, 110, "side", "cap");
+    s.t(850, 190, "storage", "lbl", "middle");
+    s.arrow([[254, 148], [356, 148]], paused ? "wire" : "ln", 5);
+    s.t(305, 130, labels[i], "lbl-s", "middle");
+    s.arrow([[644, 148], [760, 148]], (i >= 1 && i !== 4) ? "ln" : "wire", 5);
+    if (i === 1) s.t(500, 76, "resume ← submissions", "lbl", "middle");
+    if (i === 2) s.t(500, 76, "resume ← every wait", "lbl", "middle");
+    if (i === 3) s.t(500, 76, "resume ← conversation.abort", "lbl", "middle");
+    if (i === 5) s.t(500, 76, "resume() — enabled = true", "lbl", "middle");
+    if (i >= 4) {
+      s.box(790, 252, 220, 40, "seeded task row", "waiting in storage", i === 5 ? "ok-f" : "side", "trap");
+      s.arrow([[856, 208], [856, 230]], "guide", 4);
+      s.hit(678, 230, 280, 50, "trap");
+    }
+    s.t(24, 24, "one gate answers to four kinds of call-ins (scheduler.ts:1096)", "lbl-s");
+    s.hit(24, 12, 380, 20, "paused");
+    s.hit(770, 62, 180, 180, "drain");
+  }
+  steps("pump", [
+    { cap: "<b>commits happen, pump paused.</b> A commit writes rows and stops — nothing schedules." },
+    { cap: "<b>submit().</b> Admission calls <code>tasks.resume()</code> on the way in — the pump flips running." },
+    { cap: "<b>any wait().</b> waitForTask / waitForIdle / submission.wait() resume first." },
+    { cap: "<b>an abort().</b> Cancellation resumes too — the abort walk needs a live pump." },
+    { cap: "<b>the trap.</b> A commit-seeded task is stored… and waits: a pure commit can't start it." },
+    { cap: "<b>the kick.</b> <code>harness.resume()</code> enables; the drain sweeps everything seeded — lab 03's fix." },
+  ], draw);
+})();
+
+/* ─── 12 · FACTORY: floor, shelves, machines, shipping ─────────────────── */
+INFO.factory = {
+  intake: ["Inputs arrive as submissions with a dedupe key; the queue is durable rows, not memory.", "src/types.ts:371-376 · inbox.ts:99-111"],
+  router: ["The root conversation reads the board and drives; its model calls spawn durable tasks.", "lab 02 · INFO.flow:admit"],
+  workshop: ["A workshop = a task owning a worker conversation; the bond survives any restart.", "src/types.ts:306-315 · lab 03"],
+  shelves: ["Scoped docs: session (shared by all), conversation (per workshop), task (per job).", "src/documents.ts:39-51 · lab 04"],
+  machines: ["Tools shell out via one ExecutionEnv seam; foreign CLIs are durable calls, replay-guarded.", "src/harness/tool.ts · lab 06/07"],
+  shipping: ["The answer lands (its entryId); the submission settles done; waiters wake.", "src/types.ts:843 · submission.wait()"],
+  human: ["A human is just another submission: queued until they return — the factory never blocks forever on them.", "inbox.ts:99-111"],
+  report: ["Reporter tasks are forklifts: deliver orders, carry results back — at-least-once across restarts.", "lab 03 reporters"],
+};
+(function () {
+  const s = flat("factory");
+  function workshop(x, name, active) {
+    s.box(x, 150, 160, 60, name, "anchor owns workers", active ? "can fm cur" : "cap", "workshop");
+    s.cyl(x, 250, 160, 80, "side", "cap");
+    s.t(x, 292, "worker transcript", "lbl", "middle");
+    s.arrow([[x, 182], [x, 246]], "ln", 4);
+    s.t(x + 34, 214, "owns ↓", "lbl-s");
+  }
+  function draw(k) {
+    s.clear();
+    if (k === "floor") {
+      s.box(120, 150, 170, 60, "intake", "submit {requestId}", "cap", "intake");
+      s.box(400, 150, 170, 60, "router", "root conversation", "cap", "router");
+      s.arrow([[207, 150], [313, 150]], "ln", 5);
+      workshop(640, "workshop A", true);
+      workshop(840, "workshop B", false);
+      s.cyl(400, 270, 170, 80, "cap", "cap");
+      s.t(400, 312, "job doc · session scope", "lbl", "middle");
+      s.arrow([[450, 184], [412, 266]], "wire", 4);
+      s.box(120, 400, 170, 52, "human gate", "", "cut", "human");
+      s.t(133, 368, "their next input →", "lbl-s");
+      s.arrow([[88, 396], [88, 184]], "guide", 4);
+      s.t(56, 300, "slot in", "lbl-s");
+      s.box(670, 400, 200, 52, "shipping", "submissions → done ✓", "cap", "shipping");
+      s.arrow([[650, 332], [668, 372]], "wire", 4);
+      s.t(24, 24, "the floor — pick a zone chip; hover anything for its primitive", "lbl-s");
+      s.hit(28, 82, 180, 100, "intake");
+      s.hit(320, 82, 160, 100, "router");
+      s.hit(560, 82, 200, 100, "workshop");
+      s.hit(28, 372, 190, 80, "human");
+      s.hit(578, 372, 250, 70, "shipping");
+    } else if (k === "shelves") {
+      [[150, "session doc", "one per session · everyone"], [500, "conversation doc", "one per conversation"], [830, "task doc", "one per task"]].forEach(function (z) {
+        s.cyl(z[0], 70, 200, 84, "cap", "cap");
+        s.t(z[0], 112, z[1], "lbl", "middle");
+        s.t(z[0], 132, z[2], "lbl-s", "middle");
+      });
+      s.box(150, 250, 200, 48, "who writes?", "every worker (blackboard)", "cap", "shelves");
+      s.box(500, 250, 200, 48, "who reads?", "that conversation + tasks", "cap", "shelves");
+      s.box(830, 250, 200, 48, "who commits?", "the owning task's phases", "cap", "shelves");
+      s.t(24, 330, "one write = one committed revision; rewindable scopes replay history", "lbl-s");
+      s.t(24, 24, "scoped documents = the shelving system", "lbl-s");
+    } else if (k === "machines") {
+      s.box(150, 128, 150, 62, "exec env", "the seam", "cap", "machines");
+      s.box(420, 128, 240, 62, "tool call", "replay decides re-runs", "cap", "machines");
+      s.arrow([[228, 128], [296, 128]], "ln", 5);
+      s.t(262, 110, "api.env.exec", "lbl-s", "middle");
+      s.r(140, 210, 520, 110, "cut");
+      s.t(400, 234, "remote machine — separate, untrusted process", "lbl-s", "middle");
+      [260, 420, 580].forEach(function (x, n) { s.box(x, 282, 150, 36, ["opencode run", "claude -p", "bash"][n], "", "cap", "machines"); });
+      s.t(24, 350, "one seam: the same tools run on a laptop or inside a DO cell", "lbl-s");
+      s.t(24, 24, "machines", "lbl-s");
+    } else {
+      [[170, "queued"], [450, "placed → entry"], [720, "done ✓ → answer"]].forEach(function (p, n) {
+        s.box(p[0], 120, 170, 50, p[1], "", n === 2 ? "ok-f" : "cap", "shipping");
+        if (n < 2) s.arrow([[p[0] + 88, 120], [p[0] + 172, 120]], "ln", 5);
+      });
+      s.box(200, 260, 240, 56, "reporter task", "deliver ↔ carry back", "cap", "report");
+      s.box(560, 260, 240, 56, "human re-entry", "the next submit", "side", "human");
+      s.arrow([[536, 142], [560, 230]], "guide", 4);
+      s.t(24, 340, "the line ends committed: an answer entry, a settled row", "lbl-s");
+      s.t(24, 24, "shipping", "lbl-s");
+    }
+  }
+  choose("factory", [
+    { k: "floor", label: "the floor", cap: "<b>Floor.</b> Intake → router → workshops → shipping; a human slides in as just another submission — a dashed gate, never a blocking boss." },
+    { k: "shelves", label: "the shelves", cap: "<b>Shelves.</b> Scoped documents: the scope defines who shares them; every write is one committed revision." },
+    { k: "machines", label: "the machines", cap: "<b>Machines.</b> Tools run binaries through one seam; foreign CLIs are machines too — replay decides crash semantics." },
+    { k: "shipping", label: "shipping", cap: "<b>Shipping.</b> A job ends when its submission settles <code>done</code> with an answer entry — waiters wake everywhere." },
+  ], draw, "zone");
+})();
+
+INFO.knobs = {
+  scope: ["<code>session | conversation | task</code>: who shares the doc; rewindable scopes replay history.", "src/documents.ts:39-51"],
+  own: ["A task always names its owner: conversation-owned (joins that conversation's waits/aborts) or task-owned (nesting).", "src/types.ts:274-286"],
+  bg: ["<code>background: true</code> subtracts the task from idle waits, conversation aborts and cascades — it outlives the round.", "src/types.ts:287-293 · lab 03"],
+  abandon: ["<code>abandonOnRestart</code>: if its creator died with the restart, the task is abort-marked 'restart' — not worth resuming alone.", "src/types.ts:295-299 · :560-561"],
+  replay: ["Tool <code>replay: 'safe' | 'unsafe'</code>: would a crash re-run this call? Foreign CLIs answer 'no'.", "src/harness/tool.ts · lab 06"],
+  waits: ["<code>submission.wait()</code> for your own input; <code>waitForTask</code>/<code>waitForIdle</code> for ownership sums — each resumes the pump.", "src/harness/harness.ts:244-290"],
+};
+(function () {
+  const s = flat("knobs");
+  const K = [
+    ["doc scope", "session · conversation · task", "scope", 170, 110],
+    ["ownership", "conversation | task", "own", 480, 110],
+    ["background", "out of waits & aborts", "bg", 790, 110],
+    ["abandonOnRestart", "creator died → abort it", "abandon", 170, 250],
+    ["tool replay", "safe | unsafe", "replay", 480, 250],
+    ["the waits", "task · idle · submission", "waits", 790, 250],
+  ];
+  s.clear();
+  K.forEach(function (k) {
+    s.box(k[3], k[4], 240, 76, k[0], k[1], "cap", k[2]);
+    s.hit(k[3] - 120, k[4] - 38, 240, 76, k[2]);
+  });
+  s.t(24, 24, "six decisions per member — hover a knob for its receipt", "lbl-s");
+  s.t(24, 340, "combine: anchor = ownership + background · blackboard = docs + waits · subagents = tools + replay", "lbl-s");
+})();
+
+INFO.pipeline = {
+  spec: ["The build request is a submitted, placed input — the line's first committed row.", "src/harness/submissions.ts · INFO.flow"],
+  builder: ["The router spawns the builder inside its own commit: <code>createTask</code> + conversation ownership.", "src/types.ts:274-286"],
+  wait: ["The builder parks <code>waiting</code> until its tester task settles, then resumes at the checkpoint.", "src/types.ts:519-525"],
+  failed: ["<code>failed</code> is decided by the task and is terminal — the orchestrator spawns the next thing instead.", "src/types.ts:465-475"],
+  bgstate: ["A background reviewer writes progress into a doc; the line's waits ignore it.", "src/types.ts:287-293"],
+  finish: ["The orchestrator appends the answer; <code>settleSubmission</code> marks done — the original wait resolves.", "src/types.ts:843"],
+};
+(function () {
+  const s = flat("pipeline");
+  const P = { spec: [100, 120], router: [290, 120], builder: [490, 120], tester: [700, 120], fixer: [880, 120], reviewer: [490, 260], ship: [720, 260] };
+  const act = ["spec", "router", "builder", "tester", "reviewer", "ship"];
+  const tips = { spec: "spec", router: "builder", builder: "wait", tester: "failed", fixer: "failed", reviewer: "bgstate", ship: "finish" };
+  const states = ["placed", "spawns builder", "waiting on tester", "failed → spawn fixer", "background:true", "settled ✓"];
+  function draw(i) {
+    s.clear();
+    const who = act[i];
+    const edges = [
+      { pts: [[172, 120], [218, 120]], on: i >= 1 },
+      { pts: [[362, 120], [418, 120]], on: i >= 2 },
+      { pts: [[562, 120], [628, 120]], on: i >= 3 },
+      { pts: [[772, 120], [808, 120]], on: i >= 3 },
+      { pts: [[490, 144], [490, 236]], on: i >= 4 },
+      { pts: [[880, 144], [880, 230], [792, 260]], on: i >= 5 },
+    ];
+    edges.forEach(function (e) { if (e.on) s.arrow(e.pts, "wire", 4); });
+    ["spec", "router", "builder", "tester", "fixer", "reviewer", "ship"].forEach(function (name, n) {
+      const p = P[name];
+      const on = n <= i && !(name === "fixer" && i < 3);
+      const hot = name === who;
+      s.box(p[0], p[1], on ? 140 : 120, 44, name, "", hot ? "ok-f cur" : on ? "cap" : "guide", tips[name]);
+      if (name === who) s.t(p[0], p[1] + 42, states[i], "lbl", "middle");
+    });
+    if (i === 3) s.xmark(P.tester[0] + 62, P.tester[1] - 16);
+    s.t(24, 24, "one build job — everything lit is already committed state", "lbl-s");
+    s.hit(560, 84, 190, 52, "wait");
+    s.hit(740, 180, 170, 50, "failed");
+    s.hit(400, 214, 180, 52, "bgstate");
+    s.hit(620, 226, 190, 52, "finish");
+  }
+  steps("pipeline", [
+    { cap: "<b>spec in.</b> The request is a placed input — the line's first committed row." },
+    { cap: "<b>router plans.</b> The root conversation spawns the builder inside its own commit." },
+    { cap: "<b>builder waits.</b> It parks on the tester, then resumes at its checkpoint — never from zero." },
+    { cap: "<b>tester fails.</b> Outcome <code>failed</code> is terminal; the fixer is spawned next." },
+    { cap: "<b>reviewer behind.</b> Background: writes progress as it goes, never blocks the line." },
+    { cap: "<b>ship.</b> The answer appends; the original submission settles done. The whole job is stored state." },
+  ], draw);
+})();

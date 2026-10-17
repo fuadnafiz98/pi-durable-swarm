@@ -163,9 +163,10 @@ figure.split>.code .l i{text-indent:0}
     <p class="dek">A durable AI-agent session is committed state, not a live process: this page walks one session from a submit to an answer, through the task graph and the restart path, and ends where agents run as a fleet.</p>
   </header>
   <div class="prose">
-    <ol class="toc" aria-label="Contents"><li><a href="#s2">02 · WORKFLOW What happens to one input?</a></li><li><a href="#s3">03 · STATE Where does work stop and start?</a></li><li><a href="#s4">04 · STRUCTURE What holds what up?</a></li><li><a href="#s5">05 · TIME What does a crash actually cost?</a></li><li><a href="#s6">06 · CALL STACK Who runs one submit?</a></li><li><a href="#s7">07 · SWARM How do many agents hold still?</a></li><li><a href="#s8">08 · DEPLOY Where do sessions live in production?</a></li></ol>
+    <ol class="toc" aria-label="Contents"><li><a href="#round">02 · WORKFLOW What happens to one input?</a></li><li><a href="#onecommit">03 · STORAGE What makes a commit the unit of durability?</a></li><li><a href="#waiting">04 · SUBMISSIONS What exactly am I waiting on?</a></li><li><a href="#tasklife">05 · STATE Where does work stop and start?</a></li><li><a href="#owns">06 · GRAPHS How do tasks and conversations link?</a></li><li><a href="#stack">07 · STRUCTURE What holds what up?</a></li><li><a href="#crash">08 · TIME What does a crash actually cost?</a></li><li><a href="#kick">09 · PUMP What turns work on?</a></li><li><a href="#frames">10 · CALL STACK Who runs one submit?</a></li><li><a href="#patterns">11 · SWARM How do many agents hold still?</a></li><li><a href="#blueprint">12 · FACTORY A software factory on the same primitives?</a></li><li><a href="#deploytarget">13 · DEPLOY Where do sessions live in production?</a></li></ol>
     <p><code>@earendil-works/pi-durable</code> runs AI agents as <em>committed state</em>: every input, every streamed partial, every tool call lands in a storage transaction before anything reads it. A crash costs you a process, never the conversation. This page walks one session end to end — from <code>hub.submit()</code> to a durable answer — then adds choreography (tasks, swarms, restarts) and the places the same code can run: a laptop, a Durable Object cell, a fleet.</p>
-    <p>Everything drawn here was read in the pi-mono package sources (the checkout sits <em>beside</em> this lab; receipts point into <code>pi/packages/…</code>) and run in a lab of experiments (<a href="#s7">the swarm patterns</a>, <a href="#s5">the real SIGKILL</a>). Because the figures follow the source, they carry file-and-line receipts; hover anything.</p>
+    <p>Everything drawn here was read in the pi-mono package sources (the checkout sits <em>beside</em> this lab; receipts point into <code>pi/packages/…</code>) and run in a lab of experiments (<a href="#patterns">the swarm patterns</a>, <a href="#crash">the real SIGKILL</a>, <a href="#blueprint">the factory blueprint</a>). Because the figures follow the source, they carry file-and-line receipts; hover anything.</p>
+    <p>TL;DR for builders: <b>one session = one storage file</b>; <b>one commit = the unit of durability</b>; <b>the scheduler is a paused pump</b> that waits and aborts turn on; <b>ownership</b> decides what aborts and waits reach — those four ideas explain every figure below.</p>
   </div>
   <figure>
   <div class="fl">
@@ -176,7 +177,7 @@ figure.split>.code .l i{text-indent:0}
 </figure>
 
   <div class="prose">
-    <h2 id="s2"><span class="n">02 · WORKFLOW</span>What happens to one input?</h2>
+    <h2 id="round"><span class="n">02 · WORKFLOW</span>What happens to one input?</h2>
     <p>Nothing about a round is memory-only. The input arrives, the scheduler groups it into a run, the model streams through a durable task, and the answer is appended like everything else. Step through the round.</p>
   </div>
   <figure>
@@ -189,12 +190,38 @@ figure.split>.code .l i{text-indent:0}
 </figure>
 
   <div class="prose">
-    <h2 id="s3"><span class="n">03 · STATE</span>Where does work stop and start?</h2>
+    <h2 id="onecommit"><span class="n">03 · STORAGE</span>What makes a commit the unit of durability?</h2>
+    <p>Not a save — a transaction. You read committed state plus your drafts, decide, and the <em>returned value</em> becomes the thing that survives. Step through what physically happens on every <code>commit</code>.</p>
+  </div>
+  <figure>
+  <div class="fl">
+    <div class="fh"><b>FIG_03</b><span>[ one commit, atom by atom ]</span></div>
+    <div class="stage flatwrap"><svg id="commit" class="flat" viewBox="0 0 960 330" width="960" role="img" aria-label="Five steps of one commit: one callback holds every change, reads see committed state plus drafts, the returned value is the durable decision, one SQLite transaction writes the tables, and the settled rows outlive any process."></svg></div>
+    <div class="ff"><div class="chips"><button type="button" id="commitPrev">prev</button><button type="button" id="commitNext">next</button><span class="lab" id="commitStep"></span></div></div>
+    <div class="ff"><p class="cap-t" id="commitCap"></p></div>
+  </div>
+</figure>
+
+  <div class="prose">
+    <h2 id="waiting"><span class="n">04 · SUBMISSIONS</span>What exactly am I waiting on?</h2>
+    <p>A submission is the durable handshake between you and a session: <code>queued → placed → done</code> (or <code>unanswered</code>). It lives in a table, so the wait itself survives restarts. Pick the kind.</p>
+  </div>
+  <figure>
+  <div class="fl">
+    <div class="fh"><b>FIG_04</b><span>[ the two submission lifetimes ]</span></div>
+    <div class="stage flatwrap"><svg id="subm" class="flat" viewBox="0 0 960 300" width="960" role="img" aria-label="Submission states for inputs: queued, placed with an entry, done with an answer entry, or unanswered with a reason; and for passive writes: queued to done without placement."></svg></div>
+    <div class="ff"><div class="chips" id="submAct" role="group" aria-label="kind"></div></div>
+    <div class="ff"><p class="cap-t" id="submCap"></p></div>
+  </div>
+</figure>
+
+  <div class="prose">
+    <h2 id="tasklife"><span class="n">05 · STATE</span>Where does work stop and start?</h2>
     <p>Every unit of work — a generation, a tool call, a compaction, one of your tasks — is the same durable record with the same five states. The invocation is the only part a restart loses. Pick a state to see what holds it.</p>
   </div>
   <figure>
   <div class="fl">
-    <div class="fh"><b>FIG_03</b><span>[ the life of a task ]</span></div>
+    <div class="fh"><b>FIG_05</b><span>[ the life of a task ]</span></div>
     <div class="stage flatwrap"><svg id="state" class="flat" viewBox="0 0 960 355" width="960" role="img" aria-label="Task states: pending to running to waiting and completing to terminal, with a restart demotion path and an abort mark path, and the five outcomes."></svg></div>
     <div class="ff"><div class="chips" id="stateAct" role="group" aria-label="life"></div></div>
     <div class="ff"><p class="cap-t" id="stateCap"></p></div>
@@ -213,12 +240,25 @@ figure.split>.code .l i{text-indent:0}
   </div>
 
   <div class="prose">
-    <h2 id="s4"><span class="n">04 · STRUCTURE</span>What holds what up?</h2>
+    <h2 id="owns"><span class="n">06 · GRAPHS</span>How do tasks and conversations link?</h2>
+    <p>Tasks don't own conversations in the diagram sense — it's the reverse, and that single edge lets aborts walk and idle waits compute. Lab 02's real graph, link by link.</p>
+  </div>
+  <figure>
+  <div class="fl">
+    <div class="fh"><b>FIG_06</b><span>[ lab 02's real graph, edge by edge ]</span></div>
+    <div class="stage flatwrap"><svg id="graphs" class="flat" viewBox="0 0 960 430" width="960" role="img" aria-label="The lab 02 task graph: a root conversation runs a generation task, which spawns three tool tasks, each owning a child conversation; an abort walks one ownership edge; idle waits need each ordinary edge settled."></svg></div>
+    <div class="ff"><div class="chips"><button type="button" id="graphsPrev">prev</button><button type="button" id="graphsNext">next</button><span class="lab" id="graphsStep"></span></div></div>
+    <div class="ff"><p class="cap-t" id="graphsCap"></p></div>
+  </div>
+</figure>
+
+  <div class="prose">
+    <h2 id="stack"><span class="n">07 · STRUCTURE</span>What holds what up?</h2>
     <p>Four layers rest on one swappable storage contract. Your extension code sits at the top; the built-ins are extensions too. Below, the SQLite layer keeps nine public tables — the very names a Durable Object cell keeps.</p>
   </div>
   <figure>
   <div class="fl">
-    <div class="fh"><b>FIG_04</b><span>[ the stack and its schema ]</span></div>
+    <div class="fh"><b>FIG_07</b><span>[ the stack and its schema ]</span></div>
     <div class="stage flatwrap"><svg id="layers" class="flat" viewBox="0 0 960 460" width="960" role="img" aria-label="An isometric stack: extensions over conversations over scheduler over the session line over durable storage; and the nine storage tables."></svg></div>
     <div class="ff"><div class="chips" id="layersAct" role="group" aria-label="look"></div></div>
     <div class="ff"><p class="cap-t" id="layersCap">Two views of the same structure.</p></div>
@@ -226,12 +266,12 @@ figure.split>.code .l i{text-indent:0}
 </figure>
 
   <div class="prose">
-    <h2 id="s5"><span class="n">05 · TIME</span>What does a crash actually cost?</h2>
+    <h2 id="crash"><span class="n">08 · TIME</span>What does a crash actually cost?</h2>
     <p>Two rounds in the life of one conversation. In the second, the process dies mid-stream under SIGKILL and another process opens the same storage. Watch what the timeline keeps: the committed partial, the demotion, the retry.</p>
   </div>
   <figure>
   <div class="fl">
-    <div class="fh"><b>FIG_05</b><span>[ healthy round vs SIGKILL mid-stream ]</span></div>
+    <div class="fh"><b>FIG_08</b><span>[ healthy round vs SIGKILL mid-stream ]</span></div>
     <div class="stage flatwrap"><svg id="clock" class="flat" viewBox="0 0 960 300" width="960" role="img" aria-label="Two timelines over three lanes: a healthy round runs and settles; the killed round reopens, demotes the stale run to pending, resumes and retries the request until the answer commits."></svg></div>
     <div class="ff"><div class="chips" id="clockAct" role="group" aria-label="scenario"></div><div class="chips"><button type="button" id="clockPlay">pause</button><button type="button" id="clockPrev">◀ event</button><button type="button" id="clockNext">event ▶</button><span class="lab" id="clockStep"></span></div></div>
     <div class="ff"><p class="cap-t" id="clockCap">Press play, or step event by event.</p></div>
@@ -243,12 +283,25 @@ figure.split>.code .l i{text-indent:0}
   </div>
 
   <div class="prose">
-    <h2 id="s6"><span class="n">06 · CALL STACK</span>Who runs one submit?</h2>
+    <h2 id="kick"><span class="n">09 · PUMP</span>What turns work on?</h2>
+    <p>Commits alone never start work. The scheduler is a pump that ships <em>paused</em>, and only four kinds of calls flip the switch — including one explicit kick.</p>
+  </div>
+  <figure>
+  <div class="fl">
+    <div class="fh"><b>FIG_09</b><span>[ the paused pump, call by call ]</span></div>
+    <div class="stage flatwrap"><svg id="pump" class="flat" viewBox="0 0 960 330" width="960" role="img" aria-label="The scheduler ships paused; a submission, a wait, an abort, or an explicit harness.resume() each flip it to running and drain; a commit-seeded background task waits in storage until the kick."></svg></div>
+    <div class="ff"><div class="chips"><button type="button" id="pumpPrev">prev</button><button type="button" id="pumpNext">next</button><span class="lab" id="pumpStep"></span></div></div>
+    <div class="ff"><p class="cap-t" id="pumpCap"></p></div>
+  </div>
+</figure>
+
+  <div class="prose">
+    <h2 id="frames"><span class="n">10 · CALL STACK</span>Who runs one submit?</h2>
     <p>The same round as a stack of frames. Note what happens as it unwinds: frames vanish, state stays — every step the stack took was already a commit.</p>
   </div>
   <figure>
   <div class="fl">
-    <div class="fh"><b>FIG_06</b><span>[ one submit, frame by frame ]</span></div>
+    <div class="fh"><b>FIG_10</b><span>[ one submit, frame by frame ]</span></div>
     <div class="stage flatwrap"><svg id="calls" class="flat" viewBox="0 0 960 330" width="960" role="img" aria-label="A call stack from the host's submit through admit, drain, prepare, stream, progress commit and classify, until the submission settles."></svg></div>
     <div class="ff"><div class="chips"><button type="button" id="callsPrev">prev</button><button type="button" id="callsNext">next</button><span class="lab" id="callsStep"></span></div></div>
     <div class="ff"><p class="cap-t" id="callsCap"></p></div>
@@ -256,12 +309,12 @@ figure.split>.code .l i{text-indent:0}
 </figure>
 
   <div class="prose">
-    <h2 id="s7"><span class="n">07 · SWARM</span>How do many agents hold still?</h2>
+    <h2 id="patterns"><span class="n">11 · SWARM</span>How do many agents hold still?</h2>
     <p>Ownership is pi-durable's choreography: a task that owns a thing decides what its aborts and idle waits reach. Three patterns cover most swarms — and one of them has room for a foreign agent joined through a real CLI.</p>
   </div>
   <figure>
   <div class="fl">
-    <div class="fh"><b>FIG_07</b><span>[ three durable topologies ]</span></div>
+    <div class="fh"><b>FIG_11</b><span>[ three durable topologies ]</span></div>
     <div class="stage flatwrap"><svg id="swarm" class="flat" viewBox="0 0 960 430" width="960" role="img" aria-label="Three swarm shapes: a foreground tool call owning child conversations; persistent background workers behind anchors with reporters; host-driven workers sharing one session document with a foreign OpenCode CLI."></svg></div>
     <div class="ff"><div class="chips" id="swarmAct" role="group" aria-label="pattern"></div></div>
     <div class="ff"><p class="cap-t" id="swarmCap">Pick a pattern; hover the boxes for the mechanism.</p></div>
@@ -278,12 +331,52 @@ figure.split>.code .l i{text-indent:0}
   </div>
 
   <div class="prose">
-    <h2 id="s8"><span class="n">08 · DEPLOY</span>Where do sessions live in production?</h2>
+    <h2 id="blueprint"><span class="n">12 · FACTORY</span>A software factory on the same primitives?</h2>
+    <p>Intake, router, workshops, shelves, machines, shipping — every factory role is a durable primitive the lab already ran. Three views: the floor, the knobs, and one build job walking the line.</p>
+  </div>
+  <figure>
+  <div class="fl">
+    <div class="fh"><b>FIG_12</b><span>[ the factory floor ]</span></div>
+    <div class="stage flatwrap"><svg id="factory" class="flat" viewBox="0 0 960 430" width="960" role="img" aria-label="Four zones of the factory: intake submissions to a router conversation; workshops as anchor tasks owning worker conversations; shelves as scoped documents; machines as tools over ExecutionEnv; shipping as settled submissions."></svg></div>
+    <div class="ff"><div class="chips" id="factoryAct" role="group" aria-label="zone"></div></div>
+    <div class="ff"><p class="cap-t" id="factoryCap">Pick a zone; hover for the primitive behind it.</p></div>
+  </div>
+</figure>
+  <figure>
+  <div class="fl">
+    <div class="fh"><b>FIG_13</b><span>[ the six knobs you will actually set ]</span></div>
+    <div class="stage flatwrap"><svg id="knobs" class="flat" viewBox="0 0 960 360" width="960" role="img" aria-label="Six primitives to choose when building on pi-durable: document scope, ownership kind, background, abandon-on-restart, tool replay, and which wait to use."></svg></div>
+    <div class="ff"><p class="cap-t" id="knobsCap">Hover each knob for its semantics and receipt.</p></div>
+  </div>
+</figure>
+  <figure>
+  <div class="fl">
+    <div class="fh"><b>FIG_14</b><span>[ one build job, checkpoint by checkpoint ]</span></div>
+    <div class="stage flatwrap"><svg id="pipeline" class="flat" viewBox="0 0 960 370" width="960" role="img" aria-label="A build job walks the factory: spec submitted, router spawns a builder, builder commits a plan and waits on a tester, the tester fails and a fixer is spawned, a reviewer runs in the background, and the final answer settles the original submission."></svg></div>
+    <div class="ff"><div class="chips"><button type="button" id="pipelinePrev">prev</button><button type="button" id="pipelineNext">next</button><span class="lab" id="pipelineStep"></span></div></div>
+    <div class="ff"><p class="cap-t" id="pipelineCap"></p></div>
+  </div>
+</figure>
+  <div class="tw">
+    <table class="t">
+      <caption>Factory role → primitive → receipt</caption>
+      <tr><th>factory role</th><th>pi-durable primitive</th><th>receipt</th></tr>
+      <tr><td>intake</td><td><code>submit({requestId})</code> — dedupe, queued → placed</td><td><code>src/types.ts:371-376</code></td></tr>
+      <tr><td>router</td><td>the root conversation's agent settings</td><td>lab 02 orchestration</td></tr>
+      <tr><td>workshops</td><td>anchor tasks owning worker conversations</td><td><code>src/types.ts:306-315</code> · lab 03</td></tr>
+      <tr><td>shelves</td><td>docs scoped session / conversation / task</td><td><code>src/documents.ts:39-51</code> · lab 04</td></tr>
+      <tr><td>machines</td><td>tools + <code>replay</code> + an <code>ExecutionEnv</code></td><td><code>src/harness/tool.ts</code> · lab 06/07</td></tr>
+      <tr><td>shipping</td><td><code>settleSubmission</code> → done with the answer entry</td><td><code>src/types.ts:843</code> · <code>submission.wait()</code></td></tr>
+    </table>
+  </div>
+
+  <div class="prose">
+    <h2 id="deploytarget"><span class="n">13 · DEPLOY</span>Where do sessions live in production?</h2>
     <p>Same application code, three surfaces. The storage adapter is the only thing that changes — that is the whole portability story, and why the crash semantics survive a move into a Durable Object cell.</p>
   </div>
   <figure>
   <div class="fl">
-    <div class="fh"><b>FIG_08</b><span>[ three machines for the same harness ]</span></div>
+    <div class="fh"><b>FIG_15</b><span>[ three machines for the same harness ]</span></div>
     <div class="stage flatwrap"><svg id="deploy" class="flat" viewBox="0 0 960 390" width="960" role="img" aria-label="Three deployment targets: laptop Node with a SQLite file, a Durable Object cell over its storage, and a celld fleet of cells replication into a bucket."></svg></div>
     <div class="ff"><div class="chips" id="deployAct" role="group" aria-label="target"></div></div>
     <div class="ff"><p class="cap-t" id="deployCap">Pick a target; hover for the adapter.</p></div>
@@ -293,7 +386,6 @@ figure.split>.code .l i{text-indent:0}
     <b>honest status of this page</b>
     <p>Experiments 01–06 were executed on this machine (Node 26, faux provider, real OpenAI or Anthropic by key). The Durable Object cell (07-celld) was then executed under <code>celld dev</code> (v0.6.2), keyless: a <code>/submit</code> turn committed a note through the cell's own SQLite and answered (<code>settled: "done"</code>); after a workerd restart the full transcript and the notes recovered from the cell. <code>07-claude-code.ts</code> wraps the Claude Code CLI the same two ways — written, and runs the moment <code>ANTHROPIC_API_KEY</code> or <code>claude /login</code> exists. The DO adapter (<code>openDurableObjectSqliteStorage</code>) had been verified by reading <code>src/storage/sqlite/cloudflare.ts:187-197</code>; the celld write-latency figures come from its README (fetched).</p>
   </div>
-
 </main>
 <script>
 (function(){
@@ -915,6 +1007,393 @@ INFO.deploy = {
     { k: "object", label: "one DO cell", cap: "<b>A Durable Object.</b> <code>openDurableObjectSqliteStorage</code> aims the harness at <code>ctx.storage</code>; commits become the cell's transactions. Same application code." },
     { k: "fleet", label: "a self-hosted fleet", cap: "<b>Fleet.</b> celld runs the same worker as a fleet over a bucket; <code>celld dev</code> exercises it locally without a bucket." }
   ], k => (k === "object" ? object() : k === "fleet" ? fleet() : laptop()), "target");
+})();
+
+/* ─── 03 · STORAGE: one commit, atom by atom ───────────────────────────── */
+INFO.commit = {
+  callback: ["One commit callback can change documents, create tasks and append entries together — they share one fate.", "src/harness/harness.ts:230-232 (commitWith) · src/types.ts:146-150"],
+  overlay: ["Inside the callback, reads replay committed data plus your drafts. Other processes bind to the last committed incarnation and never see a draft.", "src/session/transaction.ts:683-690 (drafts revoked at prepare) · src/types.ts:887"],
+  judge: ["For a task phase the rule is absolute: the checkpoint or outcome returned through <code>runtime.commit()</code> is the decision; returning without durable progress faults the task.", "src/types.ts:146-150 · src/harness/scheduler.ts:1363"],
+  ledger: ["All writes ride one SQLite transaction: metadata → global-id checks → document checks → table writes → document actions — then the seq advances.", "src/storage/sqlite/storage.ts:191-201"],
+  settled: ["Committed rows are closed to change: a dead process cannot unwrite, and the next process opening the file reads exactly these rows.", "src/types.ts:505-536 · lab 05"],
+  tables: ["The nine public tables: durable_schema, durable_metadata, record_ids, conversations, entries, tasks, submissions, documents, document_revisions.", "src/storage/sqlite/schema.ts:5-16"],
+};
+(function () {
+  const s = flat("commit");
+  const CX = 640, CY = 118;
+  function ledger() {
+    s.cyl(CX, CY, 210, 140, "side", "cap");
+    s.t(CX, CY + 64, "your SQLite file", "lbl", "middle");
+    s.t(CX, CY + 86, "9 public tables", "lbl-s", "middle");
+    s.hit(CX - 105, CY, 210, 150, "tables");
+  }
+  steps("commit", [
+    { cap: "<b>one callback.</b> Docs, tasks, entries: whatever one <code>commit(fn)</code> touches lands — or rolls back — together." },
+    { cap: "<b>the overlay.</b> Your reads see committed rows re-played with your drafts; nobody else ever sees a draft." },
+    { cap: "<b>the judge.</b> For task phases the returned state <em>is</em> the decision: a bare return faults <code>faulted</code>." },
+    { cap: "<b>the ledger.</b> One SQLite transaction applies everything; the ledger jumps settled → settled." },
+    { cap: "<b>settled.</b> Rows are forever; the retry re-runs from state, and committed state never reverts." },
+  ], function (i) {
+    s.clear();
+    ledger();
+    if (i === 0) {
+      s.box(140, 124, 200, 56, "host commit(fn)", "docs · tasks · entries together", "cap", "callback");
+      s.box(336, 104, 130, 38, "doc draft", "", "side", "callback");
+      s.box(336, 148, 130, 38, "task + entry", "", "side", "callback");
+      s.arrow([[244, 124], [266, 108]], "ln", 4);
+      s.arrow([[244, 130], [266, 146]], "ln", 4);
+      s.arrow([[404, 126], [532, 148]], "ln", 5);
+      s.t(24, 200, "one callback, one fate — everything lands or nothing does", "lbl-s");
+    } else if (i === 1) {
+      s.t(24, 64, "the draft overlay", "lbl-s");
+      s.box(250, 130, 300, 64, "you read", "committed rows + your drafts", "cap", "overlay");
+      s.box(250, 262, 300, 64, "every other process", "committed rows only — never drafts", "side", "overlay");
+      s.arrow([[402, 130], [532, 152]], "ln", 5);
+      s.arrow([[402, 262], [532, 218]], "wire", 4);
+      s.xmark(492, 244);
+      s.t(24, 314, "drafts exist only under the writer — outside, the last commit", "lbl-s");
+    } else if (i === 2) {
+      s.box(150, 120, 190, 52, "task phase", "the handler runs", "cap", "judge");
+      s.box(500, 144, 300, 56, "runtime.commit(fn) → returned", "the state that survives", "ok-f", "judge");
+      s.arrow([[248, 122], [346, 138]], "ln", 5);
+      s.box(500, 242, 300, 44, "bare return", "no committed checkpoint", "cut", "judge");
+      s.arrow([[585, 174], [585, 218]], "guide", 4);
+      s.xmark(750, 242); s.t(768, 248, "faulted", "lbl-b");
+      s.t(24, 314, "returning without durable progress is a contract break, reported loudly", "lbl-s");
+    } else if (i === 3) {
+      var rows = ["metadata check", "checkGlobalIds", "checkDocumentActions", "applyTableWrite …", "applyDocumentActions"];
+      rows.forEach(function (t, r) {
+        s.r(760, 52 + r * 36, 190, 30, r < 4 ? "ok-f" : "cap");
+        s.t(852, 68 + r * 36, t, r < 4 ? "lbl" : "lbl-s", "middle");
+        if (r < 4) s.t(938, 68 + r * 36, "✓", "lbl");
+      });
+      s.box(170, 208, 210, 56, "one SQLite transaction", "then the seq advances", "cap", "ledger");
+      s.arrow([[278, 208], [754, 190]], "ln", 5);
+      s.t(24, 314, "intermediate states never exist to observers — settled jumps to settled", "lbl-s");
+    } else {
+      s.box(150, 120, 190, 52, "process A", "died mid-flight", "cut", "settled");
+      s.xmark(240, 94);
+      s.box(150, 252, 190, 52, "process B", "opens the same file", "cap", "settled");
+      s.arrow([[248, 122], [568, 166]], "guide", 4);
+      s.arrow([[248, 252], [568, 142]], "ln", 4);
+      s.t(24, 314, "the retry re-runs from state; the committed rows never revert", "lbl-s");
+    }
+  });
+})();
+
+/* ─── 04 · SUBMISSIONS: the two lifetimes ──────────────────────────────── */
+INFO.subm = {
+  queued: ["Admitted but not yet in the transcript: it waits behind the inbox (busy gates, queue order).", "src/types.ts:383-390 · src/harness/inbox.ts:99-111"],
+  placed: ["A run owns it: the entry is in the transcript and the run owes the answer.", "src/types.ts:391-398"],
+  done: ["The answer entry (or appended write) is committed; waiters resolve. It never changes again.", "src/types.ts:399-406 · src/types.ts:843 (settleSubmission)"],
+  unanswered: ["Terminal without an answer, with a durable reason. A placed input keeps its entry.", "src/types.ts:407-414"],
+  write: ["Passive writes have no model round: the entry lands and it settles done — or unanswered.", "src/types.ts:416-443"],
+  abort: ["<code>abortSubmission</code>: 'aborted' (in flight), 'already_placed' (a run owns it), 'settled', 'not_found'.", "src/harness/submissions.ts:30 · src/harness/harness.ts:290-293"],
+  requestid: ["Host-supplied dedupe: same requestId + type idempotently settles — retry-safe delivery.", "src/types.ts:374-375"],
+};
+(function () {
+  const s = flat("subm");
+  function draw(k) {
+    s.clear();
+    const input = k === "input";
+    s.box(170, 108, 130, 46, "queued", "", "cap", "queued");
+    if (input) {
+      s.box(450, 108, 130, 46, "placed", "entryId", "cap", "placed");
+      s.arrow([[238, 108], [382, 108]], "ln", 5);
+      s.t(310, 90, "inbox admits it", "lbl-s", "middle");
+      s.box(730, 108, 160, 46, "done ✓", "answer entryId", "ok-f", "done");
+      s.arrow([[518, 108], [646, 108]], "ln", 5);
+      s.t(582, 90, "answered", "lbl-s", "middle");
+      s.box(730, 232, 160, 46, "unanswered ✗", "reason + detail", "side", "unanswered");
+      s.arrow([[518, 128], [628, 214]], "guide", 4);
+      s.t(540, 176, "never answered", "lbl-s");
+    } else {
+      s.box(730, 108, 160, 46, "done ✓", "entryId", "ok-f", "write");
+      s.arrow([[238, 108], [646, 108]], "ln", 5);
+      s.t(442, 90, "appendEntry — no model round", "lbl-s", "middle");
+      s.box(730, 232, 160, 46, "unanswered ✗", "reason", "side", "unanswered");
+      s.arrow([[238, 128], [628, 214]], "guide", 4);
+      s.t(420, 170, "kept out — or the entry refuses", "lbl-s");
+    }
+    s.box(190, 272, 240, 40, "submission.wait(context)", "resolves on done · unanswered", "side", "abort");
+    s.t(322, 274, "you hold this Promise; the state is on disk", "lbl-s");
+    s.t(24, 24, "one submission row per input (or write)", "lbl-s");
+    s.hit(24, 14, 260, 18, "requestid");
+  }
+  choose("subm", [
+    { k: "input", label: "an input", cap: "<b>Input.</b> queued → placed (its <code>pi.user</code> entry) → done (its answer) or unanswered. <code>wait()</code> resolves on the terminal states; a restart replays the record, not the round." },
+    { k: "write", label: "a passive write", cap: "<b>Write.</b> Same record shape, no model: the entry lands and it settles <code>done</code> — or stays <code>unanswered</code> with a reason. Writes never park a run." },
+  ], draw, "kind");
+})();
+
+/* ─── 06 · GRAPHS: lab 02's real graph, edge by edge ───────────────────── */
+INFO.graphs = {
+  genroot: ["The round runs as a generation task — a <code>pi.generation</code> owned by the root conversation.", "src/harness/generation.ts:697-710 · INFO.flow:admit"],
+  tooltask: ["Each tool call of an answer is its own <code>pi.tool</code> task, parallel by default; the run parks <code>waiting</code> on them.", "src/harness/agent.ts:69 · src/types.ts:519-525"],
+  owneredge: ["The ownership edge: <code>ConversationRecord.owner = { conversationId, taskId }</code>. The task owns the child conversation — aborts walk it, waits sum it.", "src/types.ts:306-315"],
+  idlewait: ["Idle waits over a conversation sum its subtree: every ordinary (non-background) owned task must be terminal.", "src/harness/scheduler.ts · src/types.ts:287-293"],
+  abortwalk: ["An abort mark walks the ordinary ownership scope top-down; the invocation dies at its next step, settling <code>aborted</code>.", "src/harness/scheduler.ts:396-414 · lab 03"],
+};
+(function () {
+  const s = flat("graphs");
+  const T = { gen9: [150, 130, "generation 9"], t12: [430, 130, "tool 12"], t13: [650, 130, "tool 13"], t14: [855, 130, "tool 14"] };
+  const C = { root: [150, 322, "root conversation"], c15: [430, 322, "conversation 15"], c21: [650, 322, "conversation 21"], c27: [855, 322, "conversation 27"] };
+  const OWN = [["t12", "c15"], ["t13", "c21"], ["t14", "c27"]];
+  function draw(i) {
+    s.clear();
+    s.t(24, 24, "lab 02's committed graph — ids exactly as they landed in .data", "lbl-s");
+    for (const key in C) {
+      const c = C[key];
+      if (i < (key === "root" ? 0 : 2)) continue;
+      s.cyl(c[0], c[1], key === "root" ? 200 : 160, 80, key === "root" ? "cap" : "side", "cap");
+      s.t(c[0], c[1] + 44, c[2], "lbl", "middle");
+    }
+    s.arrow([[150, 152], [150, 318]], i === 0 ? "ln" : "wire", 4);
+    s.t(166, 236, "runs on ↓", "lbl-s");
+    s.box(T.gen9[0], T.gen9[1], 170, 44, "generation 9", "the round", i === 0 ? "ok-f cur" : "can fm", "genroot");
+    s.hit(150 - 85, T.gen9[1] - 22, 170, 44, "genroot");
+    if (i >= 1) {
+      ["t12", "t13", "t14"].forEach(function (tk) {
+        const t = T[tk];
+        s.box(t[0], t[1], 150, 44, t[2], "pi.tool", (i >= 3 && tk === "t13") ? "warn-f cur" : i === 1 ? "ok-f cur" : "cap", "tooltask");
+        s.hit(t[0] - 75, t[1] - 22, 150, 44, "tooltask");
+      });
+      s.arrow([[240, 126], [352, 122]], i === 1 ? "ln" : "wire", 4);
+      s.t(300, 104, "× 3 tool tasks", "lbl-s", "middle");
+      s.hit(340, 262, 220, 140, "owneredge");
+      s.hit(590, 100, 130, 180, "abortwalk");
+      s.hit(780, 262, 200, 140, "idlewait");
+    }
+    if (i >= 2) {
+      OWN.forEach(function (o) {
+        const t = T[o[0]];
+        const hot = o[0] === "t13" && i === 3;
+        s.arrow([[t[0], 152], [t[0], 318]], hot ? "bad-l" : i === 3 ? "wire" : "ln", 5);
+        s.t(t[0] + 42, 236, "owns ↓", hot ? "lbl-b" : "lbl-s");
+      });
+    }
+    if (i === 3) {
+      s.xmark(650, 244);
+      s.t(548, 258, "aborted ✗", "lbl-b");
+      s.t(24, 414, "idle waits sum the ordinary owned edges; background ones sit outside the sum", "lbl-s");
+      s.hit(24, 402, 920, 22, "idlewait");
+    }
+  }
+  steps("graphs", [
+    { cap: "<b>root runs.</b> One root conversation; its round is generation task 9 — the runs-on edge." },
+    { cap: "<b>tools spawn.</b> Three tool calls become three durable <code>pi.tool</code> tasks, parallel by default." },
+    { cap: "<b>children open.</b> Each tool task owns a child conversation — the edge that powers all choreography." },
+    { cap: "<b>abort + waits.</b> An abort walks one ownership edge down; idle waits need the ordinary edges standing." },
+  ], draw);
+})();
+
+/* ─── 09 · PUMP: what turns work on ────────────────────────────────────── */
+INFO.pump = {
+  paused: ["The scheduler ships <code>#enabled = false</code>: no drain, no admit, no work at all.", "src/harness/scheduler.ts:267 · :1096-1099 · :1266 ('paused')"],
+  submit: ["<code>conversation.submit()</code> resumes the pump before returning.", "src/harness/submissions.ts:65 · src/harness/harness.ts:205"],
+  waits: ["Every wait — <code>waitForTask</code>, <code>waitForIdle</code>, <code>submission.wait</code> — resumes first, settles second.", "src/harness/harness.ts:244-290"],
+  abort: ["<code>conversation.abort()</code> resumes too: cancel intents need a live pump to walk.", "src/harness/harness.ts:150-152 · scheduler.ts:396-414"],
+  trap: ["A commit can seed tasks (<code>createTask</code>)… but a commit alone never flips the pump. Seeded work sits as rows.", "src/harness/scheduler.ts:1096-1099"],
+  kick: ["<code>harness.resume()</code> sets enabled = true: the explicit kick, exactly what lab 03's host needed.", "src/harness/scheduler.ts:318-321 · lab 03"],
+  drain: ["Once enabled, <code>#drain()</code> sweeps pending work; callers never see a half-drained state.", "src/harness/scheduler.ts:1102-1112"],
+};
+(function () {
+  const s = flat("pump");
+  const labels = ["plain commit", "submit()", "wait()", "abort()", "createTask in commit", "harness.resume()"];
+  const chips = ["paused", "submit", "waits", "abort", "trap", "kick"];
+  function draw(i) {
+    s.clear();
+    const paused = i === 0 || i === 4;
+    s.box(150, 148, 200, 56, "host", "your code", "cap");
+    s.box(500, 150, 280, 110, "scheduler", "gate: draining? enabled?", paused ? "cut" : "can fm", chips[i]);
+    s.t(500, 228, paused ? "scheduling: paused" : i === 5 ? "scheduling: RUNNING (kicked)" : "scheduling: running", paused ? "lbl-s" : "lbl", "middle");
+    s.cyl(850, 96, 170, 110, "side", "cap");
+    s.t(850, 190, "storage", "lbl", "middle");
+    s.arrow([[254, 148], [356, 148]], paused ? "wire" : "ln", 5);
+    s.t(305, 130, labels[i], "lbl-s", "middle");
+    s.arrow([[644, 148], [760, 148]], (i >= 1 && i !== 4) ? "ln" : "wire", 5);
+    if (i === 1) s.t(500, 76, "resume ← submissions", "lbl", "middle");
+    if (i === 2) s.t(500, 76, "resume ← every wait", "lbl", "middle");
+    if (i === 3) s.t(500, 76, "resume ← conversation.abort", "lbl", "middle");
+    if (i === 5) s.t(500, 76, "resume() — enabled = true", "lbl", "middle");
+    if (i >= 4) {
+      s.box(790, 252, 220, 40, "seeded task row", "waiting in storage", i === 5 ? "ok-f" : "side", "trap");
+      s.arrow([[856, 208], [856, 230]], "guide", 4);
+      s.hit(678, 230, 280, 50, "trap");
+    }
+    s.t(24, 24, "one gate answers to four kinds of call-ins (scheduler.ts:1096)", "lbl-s");
+    s.hit(24, 12, 380, 20, "paused");
+    s.hit(770, 62, 180, 180, "drain");
+  }
+  steps("pump", [
+    { cap: "<b>commits happen, pump paused.</b> A commit writes rows and stops — nothing schedules." },
+    { cap: "<b>submit().</b> Admission calls <code>tasks.resume()</code> on the way in — the pump flips running." },
+    { cap: "<b>any wait().</b> waitForTask / waitForIdle / submission.wait() resume first." },
+    { cap: "<b>an abort().</b> Cancellation resumes too — the abort walk needs a live pump." },
+    { cap: "<b>the trap.</b> A commit-seeded task is stored… and waits: a pure commit can't start it." },
+    { cap: "<b>the kick.</b> <code>harness.resume()</code> enables; the drain sweeps everything seeded — lab 03's fix." },
+  ], draw);
+})();
+
+/* ─── 12 · FACTORY: floor, shelves, machines, shipping ─────────────────── */
+INFO.factory = {
+  intake: ["Inputs arrive as submissions with a dedupe key; the queue is durable rows, not memory.", "src/types.ts:371-376 · inbox.ts:99-111"],
+  router: ["The root conversation reads the board and drives; its model calls spawn durable tasks.", "lab 02 · INFO.flow:admit"],
+  workshop: ["A workshop = a task owning a worker conversation; the bond survives any restart.", "src/types.ts:306-315 · lab 03"],
+  shelves: ["Scoped docs: session (shared by all), conversation (per workshop), task (per job).", "src/documents.ts:39-51 · lab 04"],
+  machines: ["Tools shell out via one ExecutionEnv seam; foreign CLIs are durable calls, replay-guarded.", "src/harness/tool.ts · lab 06/07"],
+  shipping: ["The answer lands (its entryId); the submission settles done; waiters wake.", "src/types.ts:843 · submission.wait()"],
+  human: ["A human is just another submission: queued until they return — the factory never blocks forever on them.", "inbox.ts:99-111"],
+  report: ["Reporter tasks are forklifts: deliver orders, carry results back — at-least-once across restarts.", "lab 03 reporters"],
+};
+(function () {
+  const s = flat("factory");
+  function workshop(x, name, active) {
+    s.box(x, 150, 160, 60, name, "anchor owns workers", active ? "can fm cur" : "cap", "workshop");
+    s.cyl(x, 250, 160, 80, "side", "cap");
+    s.t(x, 292, "worker transcript", "lbl", "middle");
+    s.arrow([[x, 182], [x, 246]], "ln", 4);
+    s.t(x + 34, 214, "owns ↓", "lbl-s");
+  }
+  function draw(k) {
+    s.clear();
+    if (k === "floor") {
+      s.box(120, 150, 170, 60, "intake", "submit {requestId}", "cap", "intake");
+      s.box(400, 150, 170, 60, "router", "root conversation", "cap", "router");
+      s.arrow([[207, 150], [313, 150]], "ln", 5);
+      workshop(640, "workshop A", true);
+      workshop(840, "workshop B", false);
+      s.cyl(400, 270, 170, 80, "cap", "cap");
+      s.t(400, 312, "job doc · session scope", "lbl", "middle");
+      s.arrow([[450, 184], [412, 266]], "wire", 4);
+      s.box(120, 400, 170, 52, "human gate", "", "cut", "human");
+      s.t(133, 368, "their next input →", "lbl-s");
+      s.arrow([[88, 396], [88, 184]], "guide", 4);
+      s.t(56, 300, "slot in", "lbl-s");
+      s.box(670, 400, 200, 52, "shipping", "submissions → done ✓", "cap", "shipping");
+      s.arrow([[650, 332], [668, 372]], "wire", 4);
+      s.t(24, 24, "the floor — pick a zone chip; hover anything for its primitive", "lbl-s");
+      s.hit(28, 82, 180, 100, "intake");
+      s.hit(320, 82, 160, 100, "router");
+      s.hit(560, 82, 200, 100, "workshop");
+      s.hit(28, 372, 190, 80, "human");
+      s.hit(578, 372, 250, 70, "shipping");
+    } else if (k === "shelves") {
+      [[150, "session doc", "one per session · everyone"], [500, "conversation doc", "one per conversation"], [830, "task doc", "one per task"]].forEach(function (z) {
+        s.cyl(z[0], 70, 200, 84, "cap", "cap");
+        s.t(z[0], 112, z[1], "lbl", "middle");
+        s.t(z[0], 132, z[2], "lbl-s", "middle");
+      });
+      s.box(150, 250, 200, 48, "who writes?", "every worker (blackboard)", "cap", "shelves");
+      s.box(500, 250, 200, 48, "who reads?", "that conversation + tasks", "cap", "shelves");
+      s.box(830, 250, 200, 48, "who commits?", "the owning task's phases", "cap", "shelves");
+      s.t(24, 330, "one write = one committed revision; rewindable scopes replay history", "lbl-s");
+      s.t(24, 24, "scoped documents = the shelving system", "lbl-s");
+    } else if (k === "machines") {
+      s.box(150, 128, 150, 62, "exec env", "the seam", "cap", "machines");
+      s.box(420, 128, 240, 62, "tool call", "replay decides re-runs", "cap", "machines");
+      s.arrow([[228, 128], [296, 128]], "ln", 5);
+      s.t(262, 110, "api.env.exec", "lbl-s", "middle");
+      s.r(140, 210, 520, 110, "cut");
+      s.t(400, 234, "remote machine — separate, untrusted process", "lbl-s", "middle");
+      [260, 420, 580].forEach(function (x, n) { s.box(x, 282, 150, 36, ["opencode run", "claude -p", "bash"][n], "", "cap", "machines"); });
+      s.t(24, 350, "one seam: the same tools run on a laptop or inside a DO cell", "lbl-s");
+      s.t(24, 24, "machines", "lbl-s");
+    } else {
+      [[170, "queued"], [450, "placed → entry"], [720, "done ✓ → answer"]].forEach(function (p, n) {
+        s.box(p[0], 120, 170, 50, p[1], "", n === 2 ? "ok-f" : "cap", "shipping");
+        if (n < 2) s.arrow([[p[0] + 88, 120], [p[0] + 172, 120]], "ln", 5);
+      });
+      s.box(200, 260, 240, 56, "reporter task", "deliver ↔ carry back", "cap", "report");
+      s.box(560, 260, 240, 56, "human re-entry", "the next submit", "side", "human");
+      s.arrow([[536, 142], [560, 230]], "guide", 4);
+      s.t(24, 340, "the line ends committed: an answer entry, a settled row", "lbl-s");
+      s.t(24, 24, "shipping", "lbl-s");
+    }
+  }
+  choose("factory", [
+    { k: "floor", label: "the floor", cap: "<b>Floor.</b> Intake → router → workshops → shipping; a human slides in as just another submission — a dashed gate, never a blocking boss." },
+    { k: "shelves", label: "the shelves", cap: "<b>Shelves.</b> Scoped documents: the scope defines who shares them; every write is one committed revision." },
+    { k: "machines", label: "the machines", cap: "<b>Machines.</b> Tools run binaries through one seam; foreign CLIs are machines too — replay decides crash semantics." },
+    { k: "shipping", label: "shipping", cap: "<b>Shipping.</b> A job ends when its submission settles <code>done</code> with an answer entry — waiters wake everywhere." },
+  ], draw, "zone");
+})();
+
+INFO.knobs = {
+  scope: ["<code>session | conversation | task</code>: who shares the doc; rewindable scopes replay history.", "src/documents.ts:39-51"],
+  own: ["A task always names its owner: conversation-owned (joins that conversation's waits/aborts) or task-owned (nesting).", "src/types.ts:274-286"],
+  bg: ["<code>background: true</code> subtracts the task from idle waits, conversation aborts and cascades — it outlives the round.", "src/types.ts:287-293 · lab 03"],
+  abandon: ["<code>abandonOnRestart</code>: if its creator died with the restart, the task is abort-marked 'restart' — not worth resuming alone.", "src/types.ts:295-299 · :560-561"],
+  replay: ["Tool <code>replay: 'safe' | 'unsafe'</code>: would a crash re-run this call? Foreign CLIs answer 'no'.", "src/harness/tool.ts · lab 06"],
+  waits: ["<code>submission.wait()</code> for your own input; <code>waitForTask</code>/<code>waitForIdle</code> for ownership sums — each resumes the pump.", "src/harness/harness.ts:244-290"],
+};
+(function () {
+  const s = flat("knobs");
+  const K = [
+    ["doc scope", "session · conversation · task", "scope", 170, 110],
+    ["ownership", "conversation | task", "own", 480, 110],
+    ["background", "out of waits & aborts", "bg", 790, 110],
+    ["abandonOnRestart", "creator died → abort it", "abandon", 170, 250],
+    ["tool replay", "safe | unsafe", "replay", 480, 250],
+    ["the waits", "task · idle · submission", "waits", 790, 250],
+  ];
+  s.clear();
+  K.forEach(function (k) {
+    s.box(k[3], k[4], 240, 76, k[0], k[1], "cap", k[2]);
+    s.hit(k[3] - 120, k[4] - 38, 240, 76, k[2]);
+  });
+  s.t(24, 24, "six decisions per member — hover a knob for its receipt", "lbl-s");
+  s.t(24, 340, "combine: anchor = ownership + background · blackboard = docs + waits · subagents = tools + replay", "lbl-s");
+})();
+
+INFO.pipeline = {
+  spec: ["The build request is a submitted, placed input — the line's first committed row.", "src/harness/submissions.ts · INFO.flow"],
+  builder: ["The router spawns the builder inside its own commit: <code>createTask</code> + conversation ownership.", "src/types.ts:274-286"],
+  wait: ["The builder parks <code>waiting</code> until its tester task settles, then resumes at the checkpoint.", "src/types.ts:519-525"],
+  failed: ["<code>failed</code> is decided by the task and is terminal — the orchestrator spawns the next thing instead.", "src/types.ts:465-475"],
+  bgstate: ["A background reviewer writes progress into a doc; the line's waits ignore it.", "src/types.ts:287-293"],
+  finish: ["The orchestrator appends the answer; <code>settleSubmission</code> marks done — the original wait resolves.", "src/types.ts:843"],
+};
+(function () {
+  const s = flat("pipeline");
+  const P = { spec: [100, 120], router: [290, 120], builder: [490, 120], tester: [700, 120], fixer: [880, 120], reviewer: [490, 260], ship: [720, 260] };
+  const act = ["spec", "router", "builder", "tester", "reviewer", "ship"];
+  const tips = { spec: "spec", router: "builder", builder: "wait", tester: "failed", fixer: "failed", reviewer: "bgstate", ship: "finish" };
+  const states = ["placed", "spawns builder", "waiting on tester", "failed → spawn fixer", "background:true", "settled ✓"];
+  function draw(i) {
+    s.clear();
+    const who = act[i];
+    const edges = [
+      { pts: [[172, 120], [218, 120]], on: i >= 1 },
+      { pts: [[362, 120], [418, 120]], on: i >= 2 },
+      { pts: [[562, 120], [628, 120]], on: i >= 3 },
+      { pts: [[772, 120], [808, 120]], on: i >= 3 },
+      { pts: [[490, 144], [490, 236]], on: i >= 4 },
+      { pts: [[880, 144], [880, 230], [792, 260]], on: i >= 5 },
+    ];
+    edges.forEach(function (e) { if (e.on) s.arrow(e.pts, "wire", 4); });
+    ["spec", "router", "builder", "tester", "fixer", "reviewer", "ship"].forEach(function (name, n) {
+      const p = P[name];
+      const on = n <= i && !(name === "fixer" && i < 3);
+      const hot = name === who;
+      s.box(p[0], p[1], on ? 140 : 120, 44, name, "", hot ? "ok-f cur" : on ? "cap" : "guide", tips[name]);
+      if (name === who) s.t(p[0], p[1] + 42, states[i], "lbl", "middle");
+    });
+    if (i === 3) s.xmark(P.tester[0] + 62, P.tester[1] - 16);
+    s.t(24, 24, "one build job — everything lit is already committed state", "lbl-s");
+    s.hit(560, 84, 190, 52, "wait");
+    s.hit(740, 180, 170, 50, "failed");
+    s.hit(400, 214, 180, 52, "bgstate");
+    s.hit(620, 226, 190, 52, "finish");
+  }
+  steps("pipeline", [
+    { cap: "<b>spec in.</b> The request is a placed input — the line's first committed row." },
+    { cap: "<b>router plans.</b> The root conversation spawns the builder inside its own commit." },
+    { cap: "<b>builder waits.</b> It parks on the tester, then resumes at its checkpoint — never from zero." },
+    { cap: "<b>tester fails.</b> Outcome <code>failed</code> is terminal; the fixer is spawned next." },
+    { cap: "<b>reviewer behind.</b> Background: writes progress as it goes, never blocks the line." },
+    { cap: "<b>ship.</b> The answer appends; the original submission settles done. The whole job is stored state." },
+  ], draw);
 })();
 
 start();
