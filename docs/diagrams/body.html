@@ -1,0 +1,544 @@
+<div class="prose"><!-- toc -->
+  <h2 id="grammar"><span class="n">00 · CATALOG</span>How to read a grammar catalog</h2>
+  <p>Every figure on this page draws <b>one real fact of the pi-durable session</b> in a <b>different diagram grammar</b>. The receipts are inherited from the session page (<code>docs/pidurable</code>), where each was read in the vendored sources; here the subject never changes so that the <em>language</em> is all you compare. The caption under each figure states when to reach for that grammar — and its honest limits.</p>
+  <p>The test a grammar must pass: it shows what prose cannot — a <b>boundary</b>, what <b>moves</b>, or what <b>changes</b>. A grammar that only lists names fails; the same boxes-and-arrows redrawn with a different choreography is still just one grammar. Ten families follow: node-link, flow and sequence, state, structure, data, time, runtime, comparison, and domain metaphors. The last section draws <b>one round twelve ways</b> — the same <code>submit → settle</code> fact in twelve languages, back to back.</p>
+</div>
+
+<div class="prose">
+  <h2 id="nodelink"><span class="n">01 · NODE-LINK</span>What talks to what, drawn eleven ways</h2>
+  <p>The reference grammar — boxes inside regions, arrows saying what travels. Everything after it is an alternative to this picture.</p>
+
+  <p><b>g01 · regions and boundaries.</b> The reference: organs inside one harness, the outside world hatched. Reach for it when containment and one durability boundary are the story.</p>
+</div>
+<figure data-fig="g01" data-h="330" data-nav="none" data-title="regions: the session and its organs" aria-label="A host outside a harness box holding submission queue, scheduler, conversations and events; storage at the right; foreign agents hatched below."><p class="cap-t">Hover the organs. The hatched regions are outside durability — the grammar marks them, not the prose.</p></figure>
+
+<div class="prose">
+  <p><b>g02 · topology small-multiples.</b> Four mini panels: star, ring, bus, mesh. Reach for it when the <em>shape of connections</em> is the fact (here: how processes can share one storage contract).</p>
+</div>
+<figure data-fig="g02" data-h="210" data-nav="none" data-title="topologies: four shapes of the same fleet" aria-label="Four small panels: a star hub with cells, a ring of cells, a shared bus, and a full mesh."><p class="cap-t">Same nine storage tables in every panel — only the wiring changes (<code>src/storage/sqlite/schema.ts:5-16</code>).</p></figure>
+
+<div class="prose">
+  <p><b>g03 · bipartite columns.</b> Two kinds of thing, one kind of edge. Here the ownership edge: every tool task owns exactly one child conversation (<code>src/types.ts:306-315</code>).</p>
+</div>
+<figure data-fig="g03" data-h="230" data-nav="none" data-title="bipartite: tasks on the left, conversations on the right" aria-label="Three tool tasks on the left each joined to one child conversation on the right, the only edge type drawn."><p class="cap-t">When edges have exactly one meaning, drop arrows between everything else and let the bipartite shape carry it.</p></figure>
+
+<div class="prose">
+  <p><b>g04 · adjacency matrix.</b> Who resumes whom as a filled cell grid — better than arrows when the relations are many and typed (<code>src/harness/scheduler.ts:1096-1112</code>).</p>
+</div>
+<figure data-fig="g04" data-h="300" data-nav="none" data-title="matrix: which call-in flips which scheduler bit" aria-label="A grid with call-ins as rows and scheduler effects as columns; filled cells mark resume, drain, admit and settle effects."><p class="cap-t">Four call-ins, four effects, one look. A matrix never needs untangling; arrows at this density already would.</p></figure>
+
+<div class="prose">
+  <p><b>g05 · arc diagram.</b> Nodes on one axis, relations as arcs. Reach for it when everything hangs off one spine — here, submissions against the transcript (<code>src/types.ts:383-414</code>).</p>
+</div>
+<figure data-fig="g05" data-h="230" data-nav="none" data-title="arcs: each submission spans its lifetime" aria-label="A spine of transcript entries with arcs above showing submissions spanning from placement to settlement."><p class="cap-t">Arcs are placed by start and end alone — lifetimes read as widths, not as paths.</p></figure>
+
+<div class="prose">
+  <p><b>g06 · radial tree.</b> One root, children fanning out on a circle. Same lab-02 graph as the org-chart below; choose radial when depth is the message (<code>src/harness/generation.ts:697-710</code>).</p>
+</div>
+<figure data-fig="g06" data-h="280" data-nav="none" data-title="radial: generation fans out to three tool children" aria-label="A root conversation at the centre with a generation task and three tool tasks fanned out, each owning a child conversation on the rim."><p class="cap-t">Rim labels stay upright; the fan shows that the three children are peers, not a chain.</p></figure>
+
+<div class="prose">
+  <p><b>g07 · circuit diagram.</b> Signals, gates, junction dots. The pump's enable line as a circuit: four switches wired to one gate (<code>src/harness/scheduler.ts:318-321</code>).</p>
+</div>
+<figure data-fig="g07" data-h="250" data-nav="none" data-title="circuit: four call-ins wired to one enable gate" aria-label="Four switch contacts labelled submit, wait, abort and resume wired in parallel to a gate feeding the drain."><p class="cap-t">Any closed switch powers the drain — a parallel OR that prose always has to explain twice.</p></figure>
+
+<div class="prose">
+  <p><b>g08 · orbits.</b> Everything trusted inside the disk; foreign agents ride outside the rim, connected by one seam. Motion shows the boundary holding (<code>src/env/index.ts</code>).</p>
+</div>
+<figure data-fig="g08" data-h="270" data-nav="play" data-title="orbits: foreign CLIs circle outside the session" aria-label="Foreign agent nodes orbiting a central session disk, each attached by a connector that crosses the rim."><p class="cap-t">The rim never opens: a foreign CLI joins through the <code>ExecutionEnv</code> seam or not at all. Press play to watch the orbit hold.</p></figure>
+
+<div class="prose">
+  <p><b>g09 · hypercube of booleans.</b> Three independent flags as cube axes; every corner is a real state of one run (<code>src/types.ts:505-536</code>).</p>
+</div>
+<figure data-fig="g09" data-h="270" data-nav="none" data-title="cube: enabled × placed × committed" aria-label="A wireframe cube whose corners are the eight states of a run by three booleans, two corners highlighted."><p class="cap-t">Two corners are legal resting states: nothing placed (paused pump) and fully committed (settled). The rest are in flight.</p></figure>
+
+<div class="prose">
+  <p><b>g10 · nested regions.</b> Containment drawn literally: each scope strictly inside the one above (<code>src/documents.ts:39-51</code>).</p>
+</div>
+<figure data-fig="g10" data-h="230" data-nav="none" data-title="scopes: task inside conversation inside session" aria-label="Three nested rounded regions labelled session, conversation and task, with a document drawn at each depth."><p class="cap-t">A doc can see outward but is owned inward — the nesting is the permission model.</p></figure>
+
+<div class="prose">
+  <p><b>g11 · metro map.</b> Lines are conversations, stations are rounds, interchanges are tool branches. Reach for it when routes matter more than timing (<code>src/harness/agent.ts:69</code>).</p>
+</div>
+<figure data-fig="g11" data-h="250" data-nav="none" data-title="metro: one round line with a tool interchange" aria-label="A metro line from submit through prepare and stream to settle, with a branch line at tools serving three child stations."><p class="cap-t">The branch shows all three children as one interchange — the everyday shape of a tool round.</p></figure>
+
+<div class="prose">
+  <p><b>g12 · chord ends.</b> A spine with chords to four adapters: one contract, four shapes, one process at a time (<code>src/storage/sqlite/cloudflare.ts:187-197</code>).</p>
+</div>
+<figure data-fig="g12" data-h="230" data-nav="none" data-title="chords: one session, four storage adapters" aria-label="A session block at the left with four arcing connections to sqlite file, durable object storage, memory and jsonl adapters at the right."><p class="cap-t">The arcs are alternatives, not simultaneity — exactly one adapter is live per process (<code>README.md:669</code>).</p></figure>
+
+<div class="prose">
+  <h2 id="flow"><span class="n">02 · FLOW &amp; SEQUENCE</span>In what order, told eleven ways</h2>
+  <p>Order is the easiest thing to draw and the easiest thing to draw badly: stations that never say what travels, swimlanes that never say who acts. Eleven grammars for order.</p>
+
+  <p><b>g13 · stations in a row.</b> The reference: seven stations, done stations check off, the current one lights. The bread-and-butter step figure (<code>src/harness/submissions.ts:224-239</code>).</p>
+</div>
+<figure data-fig="g13" data-h="150" data-nav="steps" data-title="stations: one round, submit to settle" aria-label="Seven stations from submit through admit, prepare, request, tools and answer to settle, earlier ones checked off."></figure>
+
+<div class="prose">
+  <p><b>g14 · swimlanes.</b> One lane per actor, time left to right: the same round split by <em>who</em> runs each step. Use it when hand-offs, not steps, are the story (<code>src/harness/submissions.ts:224-239</code>).</p>
+</div>
+<figure data-fig="g14" data-h="240" data-nav="steps" data-title="swimlanes: host, harness and storage lanes" aria-label="Three horizontal lanes for host, harness and storage with the round's steps placed in the lane that performs them."></figure>
+
+<div class="prose">
+  <p><b>g15 · sequence lifelines.</b> Vertical lifelines, messages top-down, returns marked. Use it when the exact call-and-return discipline matters (<code>src/types.ts:843</code>).</p>
+</div>
+<figure data-fig="g15" data-h="330" data-nav="steps" data-title="sequence: submit, admit, answer, settle" aria-label="Three lifelines for host, harness and storage with messages descending: submit, one commit, the round, the settled answer returning to the host."></figure>
+
+<div class="prose">
+  <p><b>g16 · bpmn events and gateways.</b> Start and end events, one gateway deciding the fork. Use it for processes with conditional branches a human signs off (<code>src/harness/agent.ts:69</code>).</p>
+</div>
+<figure data-fig="g16" data-h="230" data-nav="none" data-title="bpmn: an answer or a tool fork" aria-label="A start circle, a task bar, a diamond gateway branching to tool calls that loop back and a final answer leading to an end circle."><p class="cap-t">The gateway is the classify step: text answers, tool calls loop the round back to the model.</p></figure>
+
+<div class="prose">
+  <p><b>g17 · conveyor.</b> The round as work on a moving belt; rollers are stations. Motion is literal — a token rides the belt (<code>src/harness/agent.ts:35</code>).</p>
+</div>
+<figure data-fig="g17" data-h="190" data-nav="none" data-title="conveyor: the round on a belt" aria-label="A conveyor belt with four roller stations and a crate riding across it."><p class="cap-t">A metaphor earns its place only when the belt <em>is</em> the invariant: here, everything on the belt has been committed. Motion: the crate rides the belt.</p></figure>
+
+<div class="prose">
+  <p><b>g18 · fork and join.</b> One parent splits to three parallel children and joins back — the tool round without a sequence pretence (<code>src/types.ts:519-525</code>).</p>
+</div>
+<figure data-fig="g18" data-h="210" data-nav="none" data-title="fork and join: three tool children at once" aria-label="A generation bar forked by one split line into three parallel tool tasks that rejoin before the answer appends."><p class="cap-t">The join is the park: the generation stays <code>waiting</code> until every child goes terminal.</p></figure>
+
+<div class="prose">
+  <p><b>g19 · pipeline with buffers.</b> Stages separated by bounded queues. Use it when rates differ between stages — here, the model stream and the 100 ms commit throttle (<code>src/harness/agent.ts:35</code>).</p>
+</div>
+<figure data-fig="g19" data-h="200" data-nav="none" data-title="pipeline: stream on the left, commits on the right" aria-label="Two stages joined by a bounded buffer labelled partials; the left streams fast, the right commits every 100 ms."><p class="cap-t">The buffer is the uncommitted tail. It is bounded — that bound is exactly what a crash can lose.</p></figure>
+
+<div class="prose">
+  <p><b>g20 · waterfall steps.</b> Each step a stair, each stair dropping one receipt into committed storage. Use it when every step's point is what it <em>left behind</em> (<code>src/harness/generation.ts:181-199</code>).</p>
+</div>
+<figure data-fig="g20" data-h="230" data-nav="none" data-title="waterfall: five stairs down to the ledger" aria-label="Five descending stairs labelled prepare, request, tools, answer and settle, each connected down to a ledger strip at the bottom."><p class="cap-t">Nothing cascades back up: the stairs fall, the ledger keeps.</p></figure>
+
+<div class="prose">
+  <p><b>g21 · comic strip.</b> Four frames, one sentence each, drawn like panels. Reach for it when the story is a drama — a kill and a comeback — not a mechanism.</p>
+</div>
+<figure data-fig="g21" data-h="230" data-nav="none" data-title="comic: input, checkpoint, kill, resume" aria-label="Four comic panels: an input arrives, a checkpoint is stamped, a bolt kills the process, and a second process resumes at the checkpoint."><p class="cap-t">The checkpoint panel is where the comic turns: everything after it is a restart story (<code>src/harness/scheduler.ts:296-312</code>).</p></figure>
+
+<div class="prose">
+  <p><b>g22 · ladder diagram.</b> Relay-logic rungs: contacts in series and parallel feeding one coil. The pump's enable as a rung (<code>src/harness/scheduler.ts:1096-1112</code>).</p>
+</div>
+<figure data-fig="g22" data-h="240" data-nav="none" data-title="ladder: the enable rung of the scheduler" aria-label="Two rungs of relay contacts wired in parallel feeding a coil labelled drain; contacts labelled submit, wait, abort, resume."><p class="cap-t">Industrial control's 60-year-old answer to "what turns work on" — read it like circuit theory.</p></figure>
+
+<div class="prose">
+  <p><b>g23 · interaction overview.</b> A flowchart whose inline block is a sequence fragment. Use it to bridge two granularities without two full diagrams.</p>
+</div>
+<figure data-fig="g23" data-h="250" data-nav="none" data-title="overview: flow with one sequence inline" aria-label="A flowchart of the round with one rounded block expanded as a four-message sequence between host, harness and storage."><p class="cap-t">One fragment expanded, the rest abstracted — overview grammars buy focus for resolution.</p></figure>
+
+<div class="prose">
+  <h2 id="statefam"><span class="n">03 · STATE &amp; BEHAVIOR</span>What states, what moves between them?</h2>
+  <p>Ten grammars for the task life — five states (<code>src/types.ts:505-536</code>) and five outcomes (<code>src/types.ts:465-499</code>). The state machine is the reference; the rest answer questions a state machine cannot.</p>
+
+  <p><b>g24 · state machine.</b> The reference: states as boxes, transitions labelled with their trigger. Pick a state to light its outgoing edges (<code>src/harness/scheduler.ts:396-414</code>).</p>
+</div>
+<figure data-fig="g24" data-h="330" data-nav="choose" data-act="state" data-title="machine: the life of a task" aria-label="Task states pending, running, waiting, completing and terminal with labelled transitions and a verdict strip of the five outcomes."></figure>
+
+<div class="prose">
+  <p><b>g25 · statechart with nesting.</b> A state that is itself a machine: <code>running</code> contains <code>streaming</code> and <code>tool round</code>. Use it when one state has internal gears (<code>src/types.ts:512-525</code>).</p>
+</div>
+<figure data-fig="g25" data-h="250" data-nav="none" data-title="statechart: running contains two sub-states" aria-label="A nesting: within the running state a rounded region holds streaming and tool round sub-states, entered from pending and leaving to completing."><p class="cap-t">An abort mark lands on the region, and the invocation dies at the next step — wherever inside it was (<code>src/harness/scheduler.ts:396-414</code>).</p></figure>
+
+<div class="prose">
+  <p><b>g26 · transition matrix.</b> From-states down, to-states across, allowed moves filled. The complete map of legal moves in one glance.</p>
+</div>
+<figure data-fig="g26" data-h="270" data-nav="none" data-title="matrix: every legal task transition" aria-label="A five by five grid of task states; filled cells mark the legal transitions including the restart demotion and the abort jump."><p class="cap-t">The diagonal is empty — nothing ever stays as the same state through an event. The matrix is the answer to "can it go back?" — no.</p></figure>
+
+<div class="prose">
+  <p><b>g27 · petri net.</b> Places are states, tokens are invocations, a transition consumes then produces (<code>src/types.ts:512-517</code>).</p>
+</div>
+<figure data-fig="g27" data-h="250" data-nav="none" data-title="petri: one invocation token through the net" aria-label="Petri places for pending, running, waiting and terminal joined by bars; one token sits in running, a dashed token marks the abort transition."><p class="cap-t">Reserve one token per task: the token is the in-memory invocation — the only thing a restart loses.</p></figure>
+
+<div class="prose">
+  <p><b>g28 · decision table.</b> Conditions across the top, outcomes down, one rule per column — the restart scan as a truth table (<code>src/harness/scheduler.ts:296-312</code>).</p>
+</div>
+<figure data-fig="g28" data-h="250" data-nav="none" data-title="table: what the open scan decides" aria-label="A decision table with rows for was-running, has checkpoint and background flags and columns for demote to pending, abandon, and orphan outcomes."><p class="cap-t">Rules, not arrows: when the logic is tabular, drawing it as a flowchart hides the completeness.</p></figure>
+
+<div class="prose">
+  <p><b>g29 · karnaugh-style truth grid.</b> Two booleans on a 2×2: tool <code>replay</code> safety versus what a crash already owns (<code>src/harness/tool.ts</code>).</p>
+</div>
+<figure data-fig="g29" data-h="220" data-nav="none" data-title="grid: replay safety two booleans wide" aria-label="A two by two truth grid overlaying replay safe or unsafe against committed or uncommitted, with one safe cell and one danger cell marked."><p class="cap-t">The one red cell — unsafe replay of uncommitted work — is the whole reason tool replay is a knob.</p></figure>
+
+<div class="prose">
+  <p><b>g30 · decision tree.</b> Classify's fork as a tree: tool calls or text, then per tool: replay, ownership, scope (<code>src/harness/generation.ts (classify)</code>).</p>
+</div>
+<figure data-fig="g30" data-h="240" data-nav="none" data-title="tree: the classify fork" aria-label="A decision tree from one classify node: plain text leads to an appended entry; tool calls lead through replay and background choices to child tasks or inline answers."><p class="cap-t">Trees make every path printable — a flowchart of the same branches would need loop-backs and lose that.</p></figure>
+
+<div class="prose">
+  <p><b>g31 · outcome quadrant.</b> The five terminal outcomes on two axes: expected versus broken, finished versus stopped (<code>src/types.ts:465-499</code>).</p>
+</div>
+<figure data-fig="g31" data-h="240" data-nav="none" data-title="quadrant: the five outcomes on two axes" aria-label="A quadrant with completed in the expected-finished corner, failed in expected-stopped, aborted in stopped, faulted in the broken corner and orphaned between them."><p class="cap-t">Quadrants force you to name the axes — here they are the only two questions an outcome ever answers.</p></figure>
+
+<div class="prose">
+  <p><b>g32 · phase diagram.</b> Regions over a crash point: what is already committed, what dies with the invocation, what gets retried (<code>src/harness/agent.ts:35</code>).</p>
+</div>
+<figure data-fig="g32" data-h="240" data-nav="none" data-title="phases: crash the open, the stream or the tail" aria-label="Three regions along a crash-point axis: before prepare keeps nothing, between prepare and the last partial keeps a checkpoint, in the tail loses only unflushed characters."><p class="cap-t">Read vertically: for any crash time, the region says exactly what survives — the chart is the durability contract.</p></figure>
+
+<div class="prose">
+  <p><b>g33 · classic flowchart.</b> Diamonds and connectors — the original grammar, kept for one message: the loop at the bottom is the only legal way back (<code>src/types.ts:148-150</code>).</p>
+</div>
+<figure data-fig="g33" data-h="250" data-nav="none" data-title="flowchart: a phase runs, commits or faults" aria-label="A flowchart: run the phase, a diamond for progress committed leading back to the top or down to faulted, and an exit at committed."><p class="cap-t">Retro, yes — and still the clearest picture of the fault contract: no commit, no continue.</p></figure>
+
+<div class="prose">
+  <h2 id="struct"><span class="n">04 · STRUCTURE</span>What is built on what, what contains what?</h2>
+  <p>Structure grammars answer "what holds what up". The isometric stack is the reference; twelve languages after it, from rock strata to star schemas.</p>
+
+  <p><b>g34 · isometric stack.</b> The reference: layers resting on layers, depth meaning weight (<code>src/harness/registry.ts</code>).</p>
+</div>
+<figure data-fig="g34" data-h="290" data-nav="none" data-title="stack: extensions over runtime over storage" aria-label="An isometric stack of five slabs from extensions through conversations, scheduler and the session line down to durable storage."><p class="cap-t">Slabs, not boxes — the load path is literal: your extensions sit on fixed runtime.</p></figure>
+
+<div class="prose">
+  <p><b>g35 · geological strata.</b> Storage as rock: the journal and nine tables in strata that only ever settle downward (<code>src/storage/sqlite/storage.ts:191-201</code>).</p>
+</div>
+<figure data-fig="g35" data-h="240" data-nav="none" data-title="strata: the ledger as settled rock" aria-label="A cutaway of layered strata labelled newest entry, settled entries, documents, tasks and the migration record at the base."><p class="cap-t">Strata never rewrite — the metaphor is the immutability contract (<code>src/types.ts:505-536</code>).</p></figure>
+
+<div class="prose">
+  <p><b>g36 · directory tree.</b> The harness's modules as a file tree. Use it when the reader will open the source next (<code>src/harness</code>).</p>
+</div>
+<figure data-fig="g36" data-h="290" data-nav="none" data-title="tree: the harness's modules" aria-label="A file tree of the harness: session, storage, documents, events, tasks and generation modules with receipts."><p class="cap-t">Five modules hold every receipt on this catalog — the tree is a legend for everything else.</p></figure>
+
+<div class="prose">
+  <p><b>g37 · outline tree.</b> The nine tables grouped by role, indented. Text-first structure — the forge of catalog pages (<code>src/storage/sqlite/schema.ts:5-16</code>).</p>
+</div>
+<figure data-fig="g37" data-h="260" data-nav="none" data-title="outline: nine tables grouped by role" aria-label="An indented outline grouping the nine tables into control, conversation, work and document groups."><p class="cap-t">Cheapest structure drawing there is: indentation plus counts, no geometry to tune.</p></figure>
+
+<div class="prose">
+  <p><b>g38 · treemap.</b> Area encodes writes per commit. The submission round's nine tables as one rectangle, subdivided (<code>src/storage/sqlite/schema.ts:5-16</code>).</p>
+</div>
+<figure data-fig="g38" data-h="220" data-nav="none" data-title="treemap: who a round writes" aria-label="A treemap of the nine tables by writes per round, with entries and submissions largest and the schema tables tiny."><p class="cap-t">Two rounds + one write = one tile each. Area is the message; edges are the tables.</p></figure>
+
+<div class="prose">
+  <p><b>g39 · sunburst rings.</b> The same hierarchy as g37, radial: session at the centre, groups as inner arcs, tables as outer arcs.</p>
+</div>
+<figure data-fig="g39" data-h="250" data-nav="none" data-title="sunburst: the nine tables as arcs" aria-label="A sunburst with session at the centre, four role arcs on the inner ring and the nine tables on the outer ring."><p class="cap-t">Same facts as the outline; radial simply trades reading order for proportion.</p></figure>
+
+<div class="prose">
+  <p><b>g40 · org chart.</b> The harness's organs reporting to one session line — the org chart's honest use: reporting, not hierarchy theatre.</p>
+</div>
+<figure data-fig="g40" data-h="230" data-nav="none" data-title="org: the session and its organs" aria-label="A session root box with four org children: submissions, scheduler, conversations, events, each with one-line duties."><p class="cap-t">Everyone reports to the session line: no dotted lines, no matrix — one commit is one report.</p></figure>
+
+<div class="prose">
+  <p><b>g41 · exploded view.</b> One commit pulled apart into its five ledger stages, floating above the file (<code>src/storage/sqlite/storage.ts:191-201</code>).</p>
+</div>
+<figure data-fig="g41" data-h="270" data-nav="none" data-title="exploded: one commit, layer by layer" aria-label="An exploded diagram: five flat plates stacked with gaps labelled metadata, id checks, document checks, table writes and actions, hovering over the SQLite file."><p class="cap-t">Exploded views show assembly order — the exact order the ledger callback must pass.</p></figure>
+
+<div class="prose">
+  <p><b>g42 · blueprint with dimensions.</b> The submission record drawn to scale with dimension arrows for its fields (<code>src/types.ts:371-376</code>).</p>
+</div>
+<figure data-fig="g42" data-h="220" data-nav="none" data-title="blueprint: the submission record to scale" aria-label="A blueprint-style drawing of the submission record with dimension arrows marking id, requestId, state and answer fields."><p class="cap-t">The <code>requestId</code> slot is measured — idempotent re-delivery is a dimension, not a bullet point.</p></figure>
+
+<div class="prose">
+  <p><b>g43 · anatomy.</b> The thing itself, drawn as its fields, each annotated with its receipt (<code>src/types.ts:383-414</code>).</p>
+</div>
+<figure data-fig="g43" data-h="230" data-nav="none" data-title="anatomy: a submission row's fields" aria-label="One tall row divided into fields id, requestId, status, entry, answer and each field annotated with where it is written."><p class="cap-t">Anatomy figures are for data the reader will touch by name — every annotation is a receipt.</p></figure>
+
+<div class="prose">
+  <p><b>g44 · entity relationships.</b> Cards and crow's-feet: one conversation, many entries; one task, one child conversation (<code>src/types.ts:306-315</code>).</p>
+</div>
+<figure data-fig="g44" data-h="240" data-nav="none" data-title="er: conversations, entries, tasks and documents" aria-label="An ER diagram with four entity cards and join lines carrying one-many and one-one cardinalities."><p class="cap-t">The crow's feet ARE the foreign keys — the picture is the schema's claim about the world.</p></figure>
+
+<div class="prose">
+  <p><b>g45 · star schema.</b> <code>entries</code> as the fact table; conversations, tasks and documents as dimensions around it (<code>src/storage/sqlite/schema.ts:5-16</code>).</p>
+</div>
+<figure data-fig="g45" data-h="250" data-nav="none" data-title="star: entries fact, three dimensions" aria-label="A centre fact table for entries surrounded by three dimension tables for conversations, tasks and documents."><p class="cap-t">Warehouse thinking fits session state better than it should — every entry is a measurable event.</p></figure>
+
+<div class="prose">
+  <h2 id="data"><span class="n">05 · DATA STRUCTURES</span>What shape does the durable state take?</h2>
+  <p>Data-structure grammars draw the memory discipline itself — indexes, logs, rings, lattices — so the reader sees the cost inside the correctness.</p>
+
+  <p><b>g46 · b-tree.</b> The record-ids index as a two-level tree: one root page, leaves holding ranges (<code>src/storage/sqlite/schema.ts:5-16</code>).</p>
+</div>
+<figure data-fig="g46" data-h="240" data-nav="none" data-title="b-tree: the id index" aria-label="A two-level b-tree with a root page and four leaves covering id ranges, one lookup path highlighted to a leaf cell."><p class="cap-t">Every durable id in the session resolves through exactly this shape — the receipt is the lookup path.</p></figure>
+
+<div class="prose">
+  <p><b>g47 · lsm memtable flush.</b> Streamed partials landing as an in-memory table flushed to durable runs — lsm thinking applied to the 100 ms throttle (<code>src/harness/agent.ts:35</code>).</p>
+</div>
+<figure data-fig="g47" data-h="220" data-nav="none" data-title="lsm: partials flush like a memtable" aria-label="A memtable box feeding a sequence of flushed run bars, with the newest run highlighted and a compaction arrow merging older ones."><p class="cap-t">Each flush is a progress commit. Crash between flushes loses the memtable — that is the 144-char experiment.</p></figure>
+
+<div class="prose">
+  <p><b>g48 · hash buckets.</b> <code>requestId</code> dedupe as buckets: the key hashes to exactly one bucket, so a retry finds its original (<code>src/types.ts:374-375</code>).</p>
+</div>
+<figure data-fig="g48" data-h="210" data-nav="none" data-title="buckets: requestId dedupe" aria-label="Four hash bucket columns with keys filed into exact buckets and a retried key shown landing in the same bucket as its original."><p class="cap-t">Determinism is the trick: same key, same bucket, same submission — idempotency for free.</p></figure>
+
+<div class="prose">
+  <p><b>g49 · ring buffer.</b> <code>watchEvents</code> as a ring over a conversation: new events overwrite the oldest read (<code>src/harness/events.ts:69-120</code>).</p>
+</div>
+<figure data-fig="g49" data-h="210" data-nav="none" data-title="ring: the watchEvent stream" aria-label="A ring of eight slots with a write head and a read head, two slots filled and one being overwritten."><p class="cap-t">Callers read committed facts, never callbacks — the ring is the boundary between the two.</p></figure>
+
+<div class="prose">
+  <p><b>g50 · write-ahead strip.</b> The session line as a metered tape: every commit advances the seq, everything before it is settled (<code>src/storage/sqlite/storage.ts:191-201</code>).</p>
+</div>
+<figure data-fig="g50" data-h="190" data-nav="steps" data-title="strip: the session line commits ahead" aria-label="A horizontal tape with commit blocks stamped seq numbers and a head marking settled versus in-flight."></figure>
+
+<div class="prose">
+  <p><b>g51 · vector clock.</b> Three conversations each keeping their own entry count — concurrency without a global clock (<code>src/harness/live.ts:111</code>).</p>
+</div>
+<figure data-fig="g51" data-h="240" data-nav="none" data-title="clocks: three conversations counting entries" aria-label="Three small triangle clocks over conversation columns, each showing its own entry count, two entries marked concurrent."><p class="cap-t">No entry needs a global order to be durable — the counts reconcile after the fact.</p></figure>
+
+<div class="prose">
+  <p><b>g52 · merkle ladder.</b> Document revisions hash-chaining upward: each revision commits to the one before (<code>src/documents.ts:39-41</code>).</p>
+</div>
+<figure data-fig="g52" data-h="240" data-nav="none" data-title="ladder: revision hashes chain upward" aria-label="A ladder of revision blocks each stamped with a short hash and an arrow chaining it to the previous revision."><p class="cap-t">Rewinding a scope replays this ladder — history you can verify, not history you can edit.</p></figure>
+
+<div class="prose">
+  <p><b>g53 · crdt lattice.</b> Concurrent writes as nodes in a partial order; the join is monotone. A session doc's writes under concurrent workers.</p>
+</div>
+<figure data-fig="g53" data-h="230" data-nav="none" data-title="lattice: concurrent doc revisions join" aria-label="A small lattice of revision nodes: two concurrent writes from a common ancestor joining upward, with resulting state marked."><p class="cap-t">Every write rides the session line, so joins serialize — the lattice is what would happen without one.</p></figure>
+
+<div class="prose">
+  <p><b>g54 · quorum circles.</b> Read set and write set as overlapping circles; the overlap is correctness. Drawn for a future fleet of cells (<code>README.md:669</code>).</p>
+</div>
+<figure data-fig="g54" data-h="220" data-nav="none" data-title="quorum: reads and writes must overlap" aria-label="Two overlapping circles labelled read set and write set with the intersection highlighted as the consistency guarantee."><p class="cap-t">One adapter today, one circle: the overlap is total. The grammar reserves the shape for scale.</p></figure>
+
+<div class="prose">
+  <p><b>g55 · queue with heads.</b> The inbox as a tape with head and cut-off markers: waiting, admitted, placed (<code>src/harness/inbox.ts:99-111</code>).</p>
+</div>
+<figure data-fig="g55" data-h="200" data-nav="none" data-title="queue: the inbox tape" aria-label="A queue of submission cells with markers separating waiting behind gates, admitted and placed cells."><p class="cap-t">The gates are busy-checks, not queue positions — a grammar distinction the inbox asked for.</p></figure>
+
+<div class="prose">
+  <h2 id="timefam"><span class="n">06 · TIME</span>What happens when, and what survives?</h2>
+  <p>Time grammars put a ruler under the story. The lane clock is the reference; nine languages after, from gantt bars to a two-processor strip chart.</p>
+
+  <p><b>g56 · lane clock.</b> The reference: three lanes, one axis, events that pause the clock. Press play for the healthy round; switch scenarios for the SIGKILL.</p>
+</div>
+<figure data-fig="g56" data-h="300" data-nav="play" data-act="scenario" data-title="lanes: healthy round vs SIGKILL mid-stream" aria-label="Two scenarios on three lanes — process, generation, storage — with a healthy round and a killed-and-resumed round."></figure>
+  <div class="note">
+    <b>the receipts behind the clock</b>
+    <p>Lane facts inherit from the session page: the SIGKILL landed with 144 streamed chars unflushed; the reopened process demoted the stale run and re-ran it — 2 550 chars committed on the second attempt (<code>lab 05 · src/harness/scheduler.ts:296-312</code>).</p>
+  </div>
+
+<div class="prose">
+  <p><b>g57 · gantt.</b> Lab-05's retried attempt as bars with dependencies: reopen ends where demotion starts, resume ends where retry starts.</p>
+</div>
+<figure data-fig="g57" data-h="220" data-nav="none" data-title="gantt: the retry's dependency chain" aria-label="A gantt of four bars: open scan, demote, resume, retried request, chained by dependency arrows left to right."><p class="cap-t">Gantt answers "what depends on what in time" — the arrow direction is the dependency, not the clock.</p></figure>
+
+<div class="prose">
+  <p><b>g58 · departure board.</b> Attempts as a split-flap board: ATTEMPT 1 · KILLED · 144 CHARS LOST; ATTEMPT 2 · COMMITTED · 2 550 CHARS.</p>
+</div>
+<figure data-fig="g58" data-h="200" data-nav="none" data-title="board: the attempt board" aria-label="A departure-board style table with two attempt rows showing attempt number, status in caps, and committed character counts."><p class="cap-t">The board is an outcome table wearing a metaphor — use it when the reader only needs who made it.</p></figure>
+
+<div class="prose">
+  <p><b>g59 · seismograph.</b> Partial commits every ~100 ms as regular spikes; the kill as one outsized jolt that ends the trace (<code>src/harness/agent.ts:35</code>).</p>
+</div>
+<figure data-fig="g59" data-h="210" data-nav="none" data-title="seismograph: commits as regular spikes" aria-label="A strip with evenly spaced upward spikes at 100 ms intervals and one tall terminal spike at the kill mark."><p class="cap-t">Regularity is the point: the trace is boring — until it isn't. Boring is what durability looks like.</p></figure>
+
+<div class="prose">
+  <p><b>g60 · burn-down of the uncommitted tail.</b> Streamed characters as a growing line, committed as a staircase lagging 100 ms behind; the gap at the kill is the loss.</p>
+</div>
+<figure data-fig="g60" data-h="220" data-nav="none" data-title="burn-down: streamed versus committed" aria-label="Two rising lines: a smooth streamed-chars line and a staircase committed line, with the closing gap shaded and labelled at the kill."><p class="cap-t">The area between the lines is the crash tail. A grammar that makes a number visible.</p></figure>
+
+<div class="prose">
+  <p><b>g61 · interval bars.</b> One bar per 100 ms window, provider bytes shaded, the committed slice solid. Length encodes the partialIntervalMs contract (<code>src/harness/agent.ts:35</code>).</p>
+</div>
+<figure data-fig="g61" data-h="200" data-nav="none" data-title="bars: one commit window sliced" aria-label="Five horizontal 100 ms window bars, each with a shaded provider slice and a solid committed slice growing over time."><p class="cap-t">Same data as the seismograph; bars trade drama for measurability.</p></figure>
+
+<div class="prose">
+  <p><b>g62 · lineage ledger.</b> Entries stamped by id in a vertical ledger, with the submission's entries bracketed — transcript as disturbed-by-nothing order.</p>
+</div>
+<figure data-fig="g62" data-h="240" data-nav="none" data-title="ledger: entries by id" aria-label="A vertical ledger of receipt lines 11 through 15 with the bracket of one round spanning user, system and assistant entries."><p class="cap-t">Schematic ids — the shape of the receipt, not the lab's numbering (<code>lab 02</code>).</p></figure>
+
+<div class="prose">
+  <p><b>g63 · retry ladder.</b> Attempts as rungs up a wall; the fall marks the kill, the landing the resume. Same story as the clock, re-told for one glance.</p>
+</div>
+<figure data-fig="g63" data-h="230" data-nav="none" data-title="ladder: attempt one falls, attempt two lands" aria-label="Two rungs: attempt one rises and falls with a cross at the kill, attempt two rises past it and lands at committed."><p class="cap-t">Height is progress, not time — say so in the axis label or the grammar lies.</p></figure>
+
+<div class="prose">
+  <p><b>g64 · strip chart handover.</b> Two processes share one axis; the cutover is a single vertical rule with both process names — who ran what, in order.</p>
+</div>
+<figure data-fig="g64" data-h="200" data-nav="none" data-title="strip: two processes, one axis" aria-label="One axis with a first-process bar ending at a vertical cutover rule and a second-process bar continuing to the committed answer."><p class="cap-t">The handover is one moment; the strip makes the two bars read as one continuous run.</p></figure>
+
+<div class="prose">
+  <h2 id="runtime"><span class="n">07 · RUNTIME</span>Who runs what, frame by frame?</h2>
+  <p>Runtime grammars show execution: stacks, flames, traces, mailboxes. Their shared lesson on this page — frames vanish, state stays.</p>
+
+  <p><b>g65 · call stack.</b> The reference: frames bottom-up, the top running, the note beside it. Step the frames of one submit (<code>src/harness/types.ts:90-104</code>).</p>
+</div>
+<figure data-fig="g65" data-h="330" data-nav="steps" data-title="stack: one submit, frame by frame" aria-label="A call stack from the host's hub.submit through admit, drain, prepare, stream and classify, collapsing to a settled submission."></figure>
+
+<div class="prose">
+  <p><b>g66 · flame bars.</b> One row of nested bars: drain contains the task's phases; width is time share. The 100 ms commit is one thin entry (<code>src/harness/agent.ts:35</code>).</p>
+</div>
+<figure data-fig="g66" data-h="210" data-nav="none" data-title="flame: one drain sweep's time shares" aria-label="A flame profile with a wide drain bar containing narrower phase bars for prepare, request, tool round and append."><p class="cap-t">Widths here are schematic, not measured — the grammar is borrowed for shape, not profiling.</p></figure>
+
+<div class="prose">
+  <p><b>g67 · waterfall trace.</b> Dev-tools spans with start and end offsets on one axis — the same drain with absolute times (<code>src/harness/scheduler.ts:1102-1112</code>).</p>
+</div>
+<figure data-fig="g67" data-h="210" data-nav="none" data-title="waterfall: spans in absolute time" aria-label="Four offset spans on one axis: admit, prepare, request with a progress-commit tick, and append, left to right in time."><p class="cap-t">Where the flame says share, the waterfall says when — same phases, different ruler.</p></figure>
+
+<div class="prose">
+  <p><b>g68 · actor mailbox.</b> The submission queue as an actor's mailbox; waits and answers come back stamped (<code>src/harness/inbox.ts:99-111</code>).</p>
+</div>
+<figure data-fig="g68" data-h="230" data-nav="none" data-title="mailbox: the inbox as an actor" aria-label="An actor box with a mailbox slot taking submissions and a reply slot returning stamped settled answers."><p class="cap-t">At-least-once delivery with idempotent keys — the actor model's oldest lesson, already priced in.</p></figure>
+
+<div class="prose">
+  <p><b>g69 · event loop ring.</b> The drain as the loop's recurring tick; waits and aborts enter via the incoming edge (<code>src/harness/scheduler.ts:1102-1112</code>).</p>
+</div>
+<figure data-fig="g69" data-h="230" data-nav="none" data-title="ring: the pump as an event loop" aria-label="A circular loop with four stations, inputs entering at the top and committed state exiting at the bottom each sweep."><p class="cap-t">Cyclic time suits a pump: every sweep is the same sweep until nothing is pending.</p></figure>
+
+<div class="prose">
+  <p><b>g70 · csp channel.</b> Writers on one end of a channel, the ledger on the other; a commit is one message, accepted whole.</p>
+</div>
+<figure data-fig="g70" data-h="210" data-nav="none" data-title="channel: commit as one message" aria-label="Two process blocks joined by a channel arrow carrying a single commit parcel from the writer to the ledger."><p class="cap-t">The parcel is atomic by construction — a channel grammar makes half-commits unthinkable.</p></figure>
+
+<div class="prose">
+  <p><b>g71 · worker pool.</b> Three tool tasks in a pool, one slot parked <code>waiting</code>: concurrency with visible capacity (<code>src/types.ts:519-525</code>).</p>
+</div>
+<figure data-fig="g71" data-h="200" data-nav="none" data-title="pool: three tools, one parked" aria-label="A pool frame holding three worker slots, two running and one parked waiting, fed from a task queue."><p class="cap-t">Pools make the "parallel by default" claim concrete: capacity, not promises.</p></figure>
+
+<div class="prose">
+  <p><b>g72 · heap generations.</b> Committed state as the old generation that survives every collection; the unflushed stream tail as the nursery that dies (<code>lab 05</code>).</p>
+</div>
+<figure data-fig="g72" data-h="210" data-nav="none" data-title="generations: what a collect kills" aria-label="Two heap regions: a large old generation labelled committed state and a small nursery labelled unflushed tail being swept."><p class="cap-t">Map the GC labels onto processes: the kill collects the nursery; the old generation is untouched.</p></figure>
+
+<div class="prose">
+  <h2 id="compare"><span class="n">08 · COMPARISON</span>Which option, what changed?</h2>
+  <p>Comparison grammars put two truths in one viewport and mark the delta. Seven ways, ending with the catalog comparing itself.</p>
+
+  <p><b>g73 · before and after overlay.</b> One canvas, two inks: the memory-only round ghosted dashed, the committed round solid. Pick a side.</p>
+</div>
+<figure data-fig="g73" data-h="260" data-nav="choose" data-act="mode" data-title="overlay: memory-only ghosted, committed solid" aria-label="One canvas with two selectable modes: a dashed memory-only round and a solid committed round of the same steps."></figure>
+
+<div class="prose">
+  <p><b>g74 · side by side.</b> Two canvases, one fact each: foreground tool children versus background reporters (<code>lab 02 · lab 03</code>).</p>
+</div>
+<figure data-fig="g74" data-h="260" data-nav="none" data-title="side side: two swarm patterns" aria-label="Two panels separated by a rule: the foreground pattern with tool children left, the background pattern with anchors and reporters right."><p class="cap-t">Side-by-side trades screen width for zero hidden state — the honest grammar when options differ structurally.</p></figure>
+
+<div class="prose">
+  <p><b>g75 · diff marks.</b> The healthy and killed rounds overlaid with diff marks: checks where they agree, crosses where the crash costs.</p>
+</div>
+<figure data-fig="g75" data-h="220" data-nav="none" data-title="diff: healthy versus killed, marked" aria-label="Two aligned rows of step ticks where the second path diverges at the stream step with a cross mark and a retried tail."><p class="cap-t">Diff grammars need an alignment rule: here, phase names align, times do not.</p></figure>
+
+<div class="prose">
+  <p><b>g76 · the catalog quadrant.</b> Six grammars placed on fidelity versus authoring cost — the catalog judging itself, with the taxonomy as the plot.</p>
+</div>
+<figure data-fig="g76" data-h="250" data-nav="none" data-title="quadrant: fidelity versus cost of six grammars" aria-label="A quadrant scatter of six grammar dots labelled regions, matrix, strata, metro, sequence and ledger on fidelity and authoring cost axes."><p class="cap-t">Meta, yes — and the fastest way to choose a grammar when a page needs one figure.</p></figure>
+
+<div class="prose">
+  <p><b>g77 · adapter scatter.</b> Four storage adapters on latency versus durability guarantees; the handbook's first chart for any "which one?" question (<code>README.md:669</code>).</p>
+</div>
+<figure data-fig="g77" data-h="240" data-nav="none" data-title="scatter: the adapters on two axes" aria-label="A scatter plot with four adapter dots on a latency axis across a durability axis, the disk and durable object dots higher on both."><p class="cap-t">Latency numbers are lab and README figures; the durability axis is the adapter contract.</p></figure>
+
+<div class="prose">
+  <p><b>g78 · phase transition.</b> The pump's paused and running states as regions along an axis of call-ins, with the transition edge steep and labelled.</p>
+</div>
+<figure data-fig="g78" data-h="220" data-nav="none" data-title="phases: paused and running regions" aria-label="Two flat regions along a call-in axis: a paused plateau until submit or resume arrives, then a running plateau with the drain active."><p class="cap-t">No smooth ramp: the pump flips. A phase-diagram grammar says that with a cliff, not an arrow.</p></figure>
+
+<div class="prose">
+  <p><b>g79 · traffic lights.</b> A grid of green, grey and red dots: which call-ins resume the pump, which drain it, which do neither (<code>src/harness/harness.ts:244-290</code>).</p>
+</div>
+<figure data-fig="g79" data-h="210" data-nav="none" data-title="lights: what each call-in does" aria-label="A five-row grid with green and grey dots marking whether each call-in resumes the pump, drains work or settles."><p class="cap-t">Three states per cell: does, does-not, depends. When every cell is three-valued, lights beat words.</p></figure>
+
+<div class="prose">
+  <h2 id="metaphor"><span class="n">09 · DOMAIN METAPHORS</span>What if the machine had a body?</h2>
+  <p>Metaphor grammars borrow a physical system the reader already understands — but only when the borrowed invariant is real. Each below states the borrowed invariant it actually uses.</p>
+
+  <p><b>g80 · patch panel.</b> The hub as a switchboard patch bay: each conversation one port, callers patched in and out. Borrowed invariant: connections are explicit and auditable (<code>src/harness/types.ts:90-104</code>).</p>
+</div>
+<figure data-fig="g80" data-h="250" data-nav="none" data-title="patch panel: conversations as ports" aria-label="A patch panel with numbered ports wired to a hub block; one yellow patch cable in flight marked as a submission in transit."><p class="cap-t">Every cable is a durable fact: the panel never holds a half-made connection.</p></figure>
+
+<div class="prose">
+  <p><b>g81 · plumbing.</b> The session line as one pipe with valves; commits flow one way. Borrowed invariant: pressure and one-way flow (<code>src/session/session.ts</code>).</p>
+</div>
+<figure data-fig="g81" data-h="230" data-nav="none" data-title="plumbing: the session line as one pipe" aria-label="Segments of pipe with valves labelled write, write and write, feeding a storage tank; a check valve prevents backflow."><p class="cap-t">The check valve is the write-after-read guard — flow never reverses into a settled pipe.</p></figure>
+
+<div class="prose">
+  <p><b>g82 · orchestra.</b> One conductor (the router), sections (workers), one shared score (the session doc). Borrowed invariant: parts differentiate, the score synchronizes (<code>src/documents.ts:39-51</code>).</p>
+</div>
+<figure data-fig="g82" data-h="250" data-nav="none" data-title="orchestra: conductor, sections, one score" aria-label="A conductor block facing two section blocks, all above a long score strip labelled session document; one player marked playing, another resting."><p class="cap-t">Sections read the same bar at their own tempo; the score, not the conductor, is the state.</p></figure>
+
+<div class="prose">
+  <p><b>g83 · assembly line.</b> A checkpoint car moves down the line; each station stamps one more field. Borrowed invariant: the chassis accumulates (<code>src/harness/generation.ts:181-199</code>).</p>
+</div>
+<figure data-fig="g83" data-h="220" data-nav="none" data-title="assembly: the checkpoint gains fields" aria-label="An assembly line with a car chassis passing three stations that stamp model, cutoff and compaction gate onto a growing card."><p class="cap-t">The checkpoint card is the car: every station adds a field — nothing is replaced, only added.</p></figure>
+
+<div class="prose">
+  <p><b>g84 · warehouse aisles.</b> Nine tables as aisles and shelves; the commit is the forklift that never leaves a box half-emptied. Borrowed invariant: units of move (<code>src/storage/sqlite/schema.ts:5-16</code>).</p>
+</div>
+<figure data-fig="g84" data-h="240" data-nav="none" data-title="warehouse: aisles, shelves, one forklift" aria-label="A warehouse floor with four aisles labelled by table groups, a forklift carrying one crate marked commit, and shelves drawn inside aisles."><p class="cap-t">A forklift moves whole crates: that is atomicity in warehouse English.</p></figure>
+
+<div class="prose">
+  <p><b>g85 · postal sorting.</b> Inputs as letters routed into bins by one sorter; requestId is the already-stamped letter that re-files itself. Borrowed invariant: sorting by key (<code>src/types.ts:374-375</code>).</p>
+</div>
+<figure data-fig="g85" data-h="230" data-nav="none" data-title="postal: letters sorted by key" aria-label="A sorter tray with letters sliding into four labelled bins; one letter marked return-to-same-bin as a retried requestId."><p class="cap-t">Deterministic sorting is idempotency: the same letter always lands in the same bin.</p></figure>
+
+<div class="prose">
+  <p><b>g86 · elevator shafts.</b> Task states as floors, the invocation as the cabin. A restart rebuilds the shaft and the cabin starts at the checkpoint floor (<code>src/types.ts:505-536</code>).</p>
+</div>
+<figure data-fig="g86" data-h="250" data-nav="none" data-title="elevator: the invocation rides the shaft" aria-label="An elevator shaft with five floors labelled by task states; a cabin at running and a second cabin drawn dashed returning at pending after a rebuild."><p class="cap-t">The building persists; the cabin is stored. State floors are the building, invocations the cabins.</p></figure>
+
+<div class="prose">
+  <p><b>g87 · scoreboard.</b> The five outcomes as a match score, each with its one-line cause (<code>src/types.ts:465-499</code>).</p>
+</div>
+<figure data-fig="g87" data-h="200" data-nav="none" data-title="score: the task's five endings" aria-label="A scoreboard with five outcome rows and their reasons, completed leading with a star and faulted marked in alert colour."><p class="cap-t">Scoreboards end games. So do outcomes: the row never changes again once lit.</p></figure>
+
+<div class="prose">
+  <p><b>g88 · gears.</b> The pump as meshing gears: waits engage, resume engages, plain commits spin free. Borrowed invariant: engagement, not motion (<code>src/harness/scheduler.ts:1096-1112</code>).</p>
+</div>
+<figure data-fig="g88" data-h="230" data-nav="none" data-title="gears: what engages the pump" aria-label="Two gears labelled pump and drain, free-spinning when detached, with three engagement arms labelled submit, wait and resume attached to the mesh point."><p class="cap-t">Energy is never the problem; engagement is. Four arms can mesh the gear — nothing else can.</p></figure>
+
+<div class="prose">
+  <p><b>g89 · punch tape.</b> The jsonl adapter as a sprocketed tape: entries in order, one writer, one needle. Borrowed invariant: append-only (<code>src/types.ts:416-443</code>).</p>
+</div>
+<figure data-fig="g89" data-h="210" data-nav="none" data-title="tape: the append-only stream" aria-label="A strip of punch tape with entry rows punched along it, one write head ahead of the reader needle."><p class="cap-t">You can only add holes. Same tape discipline: append, never rewrite — the adapter is that sentence.</p></figure>
+
+<div class="prose">
+  <h2 id="roundways"><span class="n">10 · ONE ROUND, TWELVE WAYS</span>The same fact, twelve grammars</h2>
+  <p>Every figure below draws <b>the same single round</b> — <code>submit → admit → prepare → request → tools → answer → settle</code> — in a different grammar, small and identical in height. This is the head-to-head the catalog exists for: pick a grammar by what it makes obvious. Receipts as always: <code>src/harness/submissions.ts:224-239 · src/harness/generation.ts:697-710 · src/harness/agent.ts:35 · src/types.ts:843</code>.</p>
+</div>
+
+<figure data-fig="g90" data-h="200" data-nav="none" data-title="way 1: regions map" aria-label="The round as boxes in regions with the harness boundary drawn."><p class="cap-t"><b>1 · regions map.</b> Obvious: who is inside the boundary. Blind: order and time.</p></figure>
+<figure data-fig="g91" data-h="200" data-nav="none" data-title="way 2: sequence" aria-label="The round as four lifelines with messages descending."><p class="cap-t"><b>2 · sequence.</b> Obvious: call-and-return discipline. Blind: what is committed.</p></figure>
+<figure data-fig="g92" data-h="200" data-nav="none" data-title="way 3: swimlanes" aria-label="The round across three actor lanes."><p class="cap-t"><b>3 · swimlanes.</b> Obvious: who does each step. Blind: why they wait.</p></figure>
+<figure data-fig="g93" data-h="200" data-nav="none" data-title="way 4: sankey bands" aria-label="The round as flow bands of varying width from submit to settle."><p class="cap-t"><b>4 · sankey.</b> Obvious: where volume concentrates. Blind: discrete steps.</p></figure>
+<figure data-fig="g94" data-h="200" data-nav="none" data-title="way 5: ledger strip" aria-label="The round as stamped entries on a tape with seq numbers."><p class="cap-t"><b>5 · ledger.</b> Obvious: what the commit bought. Blind: who ran it.</p></figure>
+<figure data-fig="g95" data-h="200" data-nav="none" data-title="way 6: metro" aria-label="The round as one metro line with a tool interchange."><p class="cap-t"><b>6 · metro.</b> Obvious: routes and interchanges. Blind: timing and returns.</p></figure>
+<figure data-fig="g96" data-h="200" data-nav="none" data-title="way 7: statechart" aria-label="The round as states with a nested running region."><p class="cap-t"><b>7 · statechart.</b> Obvious: legal moves and the abort path. Blind: data flow.</p></figure>
+<figure data-fig="g97" data-h="200" data-nav="none" data-title="way 8: gantt" aria-label="The round as dependency-chained gantt bars."><p class="cap-t"><b>8 · gantt.</b> Obvious: dependencies in time. Blind: message content.</p></figure>
+<figure data-fig="g98" data-h="200" data-nav="none" data-title="way 9: comic strip" aria-label="The round as five comic frames."><p class="cap-t"><b>9 · comic.</b> Obvious: drama and stakes. Blind: mechanism.</p></figure>
+<figure data-fig="g99" data-h="200" data-nav="none" data-title="way 10: bpmn" aria-label="The round as events, task bars and a gateway fork."><p class="cap-t"><b>10 · bpmn.</b> Obvious: gates a human must reason about. Blind: storage writes.</p></figure>
+<figure data-fig="g100" data-h="200" data-nav="none" data-title="way 11: call stack" aria-label="The round as stacked frames collapsing to settle."><p class="cap-t"><b>11 · stack.</b> Obvious: the live invocation. Blind: what outlives it.</p></figure>
+<figure data-fig="g101" data-h="200" data-nav="none" data-title="way 12: transition matrix" aria-label="The round as a small from-to matrix with the path filled."><p class="cap-t"><b>12 · matrix.</b> Obvious: completeness of the move set. Blind: narrative.</p></figure>
+
+<div class="prose">
+  <h2 id="pick"><span class="n">11 · PICK</span>The catalog at a glance</h2>
+</div>
+<div class="tw">
+  <table class="t">
+    <caption>Grammar → the question it answers best → the figure to imitate</caption>
+    <tr><th>grammar</th><th>obvious</th><th>reach for it when…</th><th>figure</th></tr>
+    <tr><td>regions</td><td>boundaries</td><td>containment is the invariant</td><td>g01 · g90</td></tr>
+    <tr><td>topologies / bipartite</td><td>wiring</td><td>one edge type, two kinds of nodes</td><td>g02 · g03</td></tr>
+    <tr><td>matrix / lights</td><td>completeness</td><td>many typed relations or three-valued cells</td><td>g04 · g26 · g79</td></tr>
+    <tr><td>arc / chord / sankey</td><td>volume &amp; span</td><td>magnitudes matter more than paths</td><td>g05 · g12 · g93</td></tr>
+    <tr><td>radial / trees / org</td><td>lineage</td><td>one root, cascading depth</td><td>g06 · g36 · g37 · g40</td></tr>
+    <tr><td>circuit / ladder</td><td>enablement</td><td>"what turns it on" is the whole story</td><td>g07 · g22 · g88</td></tr>
+    <tr><td>metro / orbits / gears</td><td>routes &amp; motion</td><td>readers must navigate, not measure</td><td>g08 · g11 · g95</td></tr>
+    <tr><td>stations / swim / sequence</td><td>order &amp; roles</td><td>steps and handovers with receipts</td><td>g13 · g14 · g15 · g91 · g92</td></tr>
+    <tr><td>bpmn / flowchart / tree</td><td>decisions</td><td>branches humans reason about</td><td>g16 · g30 · g33 · g99</td></tr>
+    <tr><td>conveyor / assembly / comic</td><td>narrative</td><td>stakes need staging</td><td>g17 · g21 · g83 · g98</td></tr>
+    <tr><td>fork/join / pool / mailbox</td><td>concurrency</td><td>parallelism by construction</td><td>g18 · g71 · g68</td></tr>
+    <tr><td>pipeline / waterfall / strips</td><td>phase + buffer</td><td>rates differ between stages</td><td>g19 · g20 · g67</td></tr>
+    <tr><td>state machine / statechart / petri</td><td>lifecycle</td><td>states and triggers with seeds</td><td>g24 · g25 · g27 · g96</td></tr>
+    <tr><td>decision table / truth grid</td><td>rules</td><td>tabular logic, no loops</td><td>g28 · g29</td></tr>
+    <tr><td>quadrant / phase diagram</td><td>two axes</td><td>two questions explain everything</td><td>g31 · g32 · g76 · g78</td></tr>
+    <tr><td>iso stack / strata / exploded</td><td>load path</td><td>layers with weight</td><td>g34 · g35 · g41</td></tr>
+    <tr><td>treemap / sunburst</td><td>proportion</td><td>sizes differ hugely</td><td>g38 · g39</td></tr>
+    <tr><td>blueprint / anatomy / er</td><td>fields &amp; keys</td><td>data the reader touches by name</td><td>g42 · g43 · g44 · g45</td></tr>
+    <tr><td>b-tree / lsm / buckets / ring / tape</td><td>memory discipline</td><td>the structure IS the cost</td><td>g46 · g47 · g48 · g49 · g89</td></tr>
+    <tr><td>wal / vector clocks / merkle / lattice</td><td>ordering &amp; history</td><td>concurrency must be reconciled</td><td>g50 · g51 · g52 · g53</td></tr>
+    <tr><td>clock lanes / gantt / board / seismo</td><td>time with survivors</td><td>crash cost over time</td><td>g56 · g57 · g58 · g59</td></tr>
+    <tr><td>burn-down / bars / ladder / strip</td><td>tail accounting</td><td>a number is the message</td><td>g60 · g61 · g63 · g64</td></tr>
+    <tr><td>stack / flame / waterfall</td><td>execution</td><td>frames vanish, state stays</td><td>g65 · g66 · g67 · g100</td></tr>
+    <tr><td>loop ring / channel / generations</td><td>runtime shapes</td><td>cycles, parcels, GC metaphors</td><td>g69 · g70 · g72</td></tr>
+    <tr><td>overlay / side-side / diff</td><td>delta</td><td>two truths, one viewport</td><td>g73 · g74 · g75</td></tr>
+    <tr><td>quorum scatter / patch / postal</td><td>choice &amp; routing</td><td>a decision readers must make</td><td>g54 · g77 · g80 · g85</td></tr>
+    <tr><td>orchestra / warehouse / elevator / score</td><td>institution</td><td>roles the reader already knows</td><td>g82 · g84 · g86 · g87</td></tr>
+  </table>
+</div>
+
+<div class="prose">
+  <h2 id="honesty"><span class="n">12 · HONEST</span>What this catalog did and did not verify</h2>
+  <div class="note">
+    <b>honest status</b>
+    <p>Every fact drawn here was read and receipted in the session page (<code>docs/pidurable</code>) or is a lab result from this repo (<code>swarm-lab</code>). The catalog re-uses those facts to isolate the <em>grammars</em> — it adds no new claims. All 101 figures passed the geometric checker (only a real browser can say where text lands); the screenshots were additionally read section by section. Grammars shown as static shapes (treemap, sunburst, flame, gantt, b-tree) are hand-placed schematics, not rendered by layout algorithms — their honesty is the caption's claim, not a tool's output.</p>
+  </div>
+</div>

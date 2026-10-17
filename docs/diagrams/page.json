@@ -1,0 +1,5 @@
+{
+  "title": "the diagram grammar catalog",
+  "dek": "One codebase — the pi-durable session — drawn in 101 different diagram grammars, so you can pick the right language for a figure on sight: the same durable round shown twelve ways at the end, every figure stating when to reach for it.",
+  "description": "A catalog of system and software diagram grammars — node-link, flow, sequence, state, structure, data, time, runtime, comparison and domain metaphors — each drawn with the visual-explainer kit against one real pi-durable fact, with file-and-line receipts."
+}
