@@ -1,0 +1,17 @@
+{
+  "root": "../..",
+  "files": {
+    "build": "scripts/build.py",
+    "kit": "assets/kit.js"
+  },
+  "ranges": {
+    "build.main": ["build", "fn", "main"],
+    "build.expand": ["build", "fn", "expand"],
+    "build.fig": ["build", "fn", "figure_html"],
+    "build.bundle": ["build", "fn", "code_bundle"],
+    "build.at": ["build", "fn", "at"],
+    "kit.play": ["kit", "span", "function play(", "render(); return { jump }"],
+    "kit.anim": ["kit", "at", "  ANIM[id] = dt => {\n    if (!playing)", 6],
+    "kit.jump": ["kit", "at", "const jump = t =>", 1]
+  }
+}

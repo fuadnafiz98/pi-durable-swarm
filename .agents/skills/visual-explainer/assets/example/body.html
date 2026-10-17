@@ -1,0 +1,42 @@
+  <div class="prose">
+    <!-- toc -->
+    <h2 id="s1"><span class="n">01 · BIG PICTURE</span>What goes in, and what comes out?</h2>
+    <p>You write a page folder: the words in <code>body.html</code>, the drawings in <code>figures.js</code>. <code>build.py</code> turns it into one HTML file with nothing to download. <code>check.mjs</code> clicks through every figure and screenshots each state. Hover any box.</p>
+  </div>
+  <figure data-fig="map" data-h="300" data-nav="none" data-title="the pipeline, folder to published page" aria-label="A page folder goes into build.py, which writes page.html; check.mjs screenshots it; fixes go back to the folder; a clean page is published.">Hover a box for what it does.</figure>
+
+  <div class="prose">
+    <h2 id="s2"><span class="n">02 · WORKFLOW</span>In what order is a page made?</h2>
+    <p>Facts before pictures, pictures before code. Each stage has an output you can point at, and the next stage starts from it.</p>
+  </div>
+  <figure data-fig="flow" data-h="220" data-nav="steps" data-title="seven stages, each with its output" aria-label="Read, outline, design, draw, build, check, publish, in a row; each stage lists what it produces."></figure>
+
+  <div class="prose">
+    <h2 id="s3"><span class="n">03 · STRUCTURE</span>What is a built page made of?</h2>
+    <p>Layers, each resting on the one below. The code panes are a layer of their own: present only when the reader asked for code.</p>
+  </div>
+  <figure data-fig="layers" data-h="420" data-nav="choose" data-act="build" data-title="the layers of one page, isometric" aria-label="An isometric stack: style and fonts at the bottom, then the kit, the figures, the prose, and optionally code panes on top."></figure>
+
+  <div class="prose">
+    <h2 id="s3b"><span class="n">04 · WHERE IT RUNS</span>Where does each part run?</h2>
+    <p>Three places: your machine builds and checks, the artifact host stores the page, the reader's browser runs it. Step through one page's trip.</p>
+  </div>
+  <figure data-fig="where" data-h="400" data-nav="steps" data-title="one page from your machine to a reader, isometric" aria-label="Three platforms in isometric view: your machine with the page folder, build.py and a headless Chromium; the artifact host; the reader's browser. Arrows carry the page between them."></figure>
+
+  <div class="prose">
+    <h2 id="s4"><span class="n">05 · STATE</span>How does a playing figure behave?</h2>
+    <p>A clock figure is a small state machine. Pick a state to see where it can go next.</p>
+  </div>
+  <figure data-fig="state" data-h="300" data-nav="choose" data-act="state" data-title="play(): four states and their transitions" aria-label="States playing, dwelling, paused and ended, with the transitions between them."></figure>
+
+  <div class="prose">
+    <h2 id="s5"><span class="n">06 · OVER TIME</span>What does one round of build and check look like?</h2>
+    <p>Three rounds you will meet. The clock plays and stops at each event.</p>
+  </div>
+  <figure data-fig="round" data-h="270" data-nav="play" data-act="round" data-title="build, check, fix, on a clock" aria-label="A timeline with lanes for build.py, check.mjs and you, in three scenarios: clean, a missing code anchor, and a clipped label."></figure>
+
+  <div class="prose">
+    <h2 id="s6"><span class="n">07 · CALL STACK</span>What runs when you build with --code?</h2>
+    <p>The frames on the stack at each moment, bottom to top. The top frame is the one running.</p>
+  </div>
+  <figure data-fig="calls" data-h="320" data-nav="steps" data-title="build.py --code, frame by frame" aria-label="A call stack growing and shrinking: main, expand, figure_html, code_bundle, at."></figure>

@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="{{LANG}}">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>{{TITLE}}</title>
+<meta name="description" content="{{DESCRIPTION}}">
+<style>
+{{FONTS}}
+{{STYLE}}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+  <pattern id="hatch" width="5" height="5" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="5" height="5" class="dl-bg"/><rect width="1.2" height="5" class="dd-dot"/></pattern>
+  <pattern id="dd" width="2" height="2" patternUnits="userSpaceOnUse"><rect width="2" height="2" class="dd-bg"/><rect width="1" height="1" class="dd-dot"/></pattern>
+</defs></svg>
+<main>
+  <header class="intro prose">
+    <h1>{{TITLE}}</h1>
+    <p class="dek">{{DEK}}</p>
+  </header>
+{{BODY}}
+</main>
+<script>
+(function(){
+{{CODE}}
+{{KIT}}
+/* ---------- this page's figures ---------- */
+{{FIGURES}}
+start();
+})();
+</script>
+</body>
+</html>

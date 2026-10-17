@@ -1,0 +1,5 @@
+{
+  "title": "How a visual explainer is made",
+  "dek": "The skill's own pipeline, drawn with its own kit: a page folder goes through build.py, check.mjs drives every figure, and what the screenshots show decides whether it ships.",
+  "description": "A worked example of the visual-explainer skill: big picture, workflow, layers, a state machine, a timeline and a call stack."
+}

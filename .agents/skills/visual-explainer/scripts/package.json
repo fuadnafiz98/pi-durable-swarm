@@ -1,0 +1,9 @@
+{
+  "name": "visual-explainer-check",
+  "private": true,
+  "type": "module",
+  "description": "Screenshots and audits a visual-explainer page: node check.mjs PAGE.html OUT_DIR",
+  "dependencies": {
+    "playwright": "1.56.1"
+  }
+}

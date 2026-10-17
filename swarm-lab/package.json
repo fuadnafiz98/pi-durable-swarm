@@ -1,0 +1,16 @@
+{
+	"name": "swarm-lab",
+	"private": true,
+	"type": "module",
+	"description": "A playground for @earendil-works/pi-durable: agents, subagent swarms, durable tasks, and a cell deployment.",
+	"scripts": {
+		"setup": "node setup.mjs",
+		"01": "node --conditions=source --experimental-strip-types 01-hello-harness.ts",
+		"02": "node --conditions=source --experimental-strip-types 02-orchestrator-swarm.ts",
+		"03": "node --conditions=source --experimental-strip-types 03-persistent-swarm.ts",
+		"04": "node --conditions=source --experimental-strip-types 04-blackboard-workers.ts",
+		"05": "node --conditions=source --experimental-strip-types 05-crash-recovery.ts",
+		"06": "node --conditions=source --experimental-strip-types 06-opencode-worker.ts",
+		"07": "node --conditions=source --experimental-strip-types 07-claude-code.ts"
+	}
+}

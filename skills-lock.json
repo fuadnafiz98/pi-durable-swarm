@@ -1,0 +1,47 @@
+{
+  "version": 1,
+  "skills": {
+    "batch-dependency-bumps": {
+      "source": "fuadnafiz98/skills",
+      "sourceType": "github",
+      "skillPath": "skills/batch-dependency-bumps/SKILL.md",
+      "computedHash": "22baeeb3112d811914afdfd40c55414ed2e2b06ae9d18adc43f5c493f8c4a9f0"
+    },
+    "clean-code": {
+      "source": "fuadnafiz98/skills",
+      "sourceType": "github",
+      "skillPath": "skills/clean-code/SKILL.md",
+      "computedHash": "325b30e3f9143cb51e09d5b33f2d8cbf44e8bfe75cf0dcb11b5cb733c9ce1e12"
+    },
+    "output": {
+      "source": "fuadnafiz98/skills",
+      "sourceType": "github",
+      "skillPath": "skills/output/SKILL.md",
+      "computedHash": "32c13e012f4219bbde287f4521446480110254b2c4c9bf1c51fac46ab18cc479"
+    },
+    "resolve-conflicts": {
+      "source": "fuadnafiz98/skills",
+      "sourceType": "github",
+      "skillPath": "skills/resolve-conflicts/SKILL.md",
+      "computedHash": "0b67365dfab039f7131149dc25c2914c760fa546d368a07c50d0f9ac967b5fec"
+    },
+    "rethink-solution": {
+      "source": "fuadnafiz98/skills",
+      "sourceType": "github",
+      "skillPath": "skills/rethink-solution/SKILL.md",
+      "computedHash": "2c89efcfb881800a74c2152b2f865a9a88e1c47b2502c3b7956a9a049407aca9"
+    },
+    "review-comments": {
+      "source": "fuadnafiz98/skills",
+      "sourceType": "github",
+      "skillPath": "skills/review-comments/SKILL.md",
+      "computedHash": "9d1a85731cfd62fe307ddb56a5046c559a52e8b6aae0fd29c6f534dc5fc8f32f"
+    },
+    "visual-explainer": {
+      "source": "fuadnafiz98/skills",
+      "sourceType": "github",
+      "skillPath": "skills/visual-explainer/SKILL.md",
+      "computedHash": "69ae5790bf408bae4a731c24be021e9942a2f95229766c2658005c8dd0d07058"
+    }
+  }
+}

@@ -1,0 +1,5 @@
+{
+  "title": "pi durable, drawn",
+  "dek": "A durable AI-agent session is committed state, not a live process: this page walks one session from a submit to an answer, through the task graph and the restart path, and ends where agents run as a fleet.",
+  "description": "How @earendil-works/pi-durable works: the session line, the scheduler, durable storage, swarm patterns, and the Durable Object deployment, each drawn from the vendored source with file-and-line receipts."
+}

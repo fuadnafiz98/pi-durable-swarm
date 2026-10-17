@@ -1,0 +1,4 @@
+scripts/node_modules/
+scripts/package-lock.json
+assets/example/page.html
+assets/example/page.code.html

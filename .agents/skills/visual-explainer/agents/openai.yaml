@@ -1,0 +1,4 @@
+interface:
+  display_name: "Visual Explainer"
+  short_description: "Interactive explainer pages for a repo, PR or feature"
+  default_prompt: "Use $visual-explainer to build an interactive explainer page for this repository: big picture first, then workflows, structure, state and call stacks."

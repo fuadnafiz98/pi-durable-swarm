@@ -1,0 +1,20 @@
+// Run this Durable Object under celld (self-hosted Durable Objects, denoland/celld)
+// with `celld dev`, or on Cloudflare with `wrangler deploy`.
+//
+// The OpenAI key is a secret in both runtimes:
+//   celld:  a vars entry or the dev-echoed env (see the celld README)
+//   Cloudflare: `wrangler secret put OPENAI_API_KEY`
+{
+	"name": "swarm-cell",
+	"main": "src/worker.ts",
+	"compatibility_date": "2025-11-01",
+	// The vendored pi packages run without Node APIs, but nodejs_compat keeps
+	// their process/env shims and setTimeout behavior sane under workerd.
+	"compatibility_flags": ["nodejs_compat"],
+	// SQLite-backed Durable Object: the storage shape pi-durable's
+	// `openDurableObjectSqliteStorage()` adapter expects.
+	"migrations": [{ "tag": "v1", "new_sqlite_classes": ["SwarmCell"] }],
+	"durable_objects": {
+		"bindings": [{ "name": "SWARM_CELL", "class_name": "SwarmCell" }]
+	},
+}
